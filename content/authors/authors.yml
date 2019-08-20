@@ -1,17 +1,9 @@
-- name: Dennis Brotzky
-  bio: |
-    Written by You. This is where your author bio lives. Share your work, your
-    joys and of course, your Twitter handle.
+- name: Cristobal Aguirre
+  bio: I learn by explaining things online. Chilean based in Vancouver, BC.
   avatar: ./avatars/dennis-brotzky.jpg
   featured: true
   social:
     - name: github
-      url: https://github.com
+      url: https://github.com/jcaguirre89
     - name: twitter
-      url: https://github.com
-    - name: instagram
-      url: https://github.com
-    - name: dribbble
-      url: https://github.com
-    - name: linkedin
-      url: https://github.com
+      url: https://github.com/jcaguirre89
