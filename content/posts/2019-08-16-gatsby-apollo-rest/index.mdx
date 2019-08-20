@@ -1,0 +1,585 @@
+---
+title: "Como convertir un REST API en GraphQL e incluirlo en Gatsby"
+author: Cristobal Aguirre
+excerpt: "Un post lleno de contenido, que te va a llevar desde 0 a una aplicación moderna, usando graphql para acceder fuentes de datos externas y publicada en netlify de manera gratuita"
+date: 2019-08-12
+hero: "./logos.PNG"
+---
+
+## Quicklinks
+
+- [Repo](https://github.com/jcaguirre89/gatsby-rest)
+
+- [Demo](https://gatsby-lobby.netlify.com/)
+
+## Introduccion
+
+En este artículo voy a mostrarte como usar [Apollo-Server](https://www.apollographql.com/docs/) para tomar un REST API y "traducirlo" en un nodo de GraphQL---que luego puedes integrar con el resto de tu schema y leerlo desde el cliente con Apollo-Client. Esto es muy útil si ya tienes un schema y quieres interactuar con APIs externas que no controlas, o si ya tienes un backend armado en Django por ejemplo y no quieres re-escribir todo solo para probar esta nueva tecnología que se ha puesto tan popular.
+
+No voy a poder cubrir GraphQL desde 0 en este post o se alargaría mucho (y también es bastante nuevo para mí) pero hay muy buenos recursos para aprender en internet, probablemente partiendo por la [documentación de Apollo mismo](https://www.apollographql.com/docs/intro/benefits/).
+
+Para que el ejemplo esté completo, voy a implementar este servidor en una página estática creada con [Gatsby](https://www.gatsbyjs.org/) para mostrarte como podrías hacer uso de este servidor. Lo mejor, es que vamos a usar las funciones _serverless_ de netlify para servirlo junto al cliente, de manera que nunca vas a tener que preocuparte por armar infraestructura---y va a ser totalmente gratis!
+
+## Qué vamos a construir
+
+Para los ansiosos, [acá](https://gatsby-lobby.netlify.com) puedes ver lo que vamos a construir. Es el starter _theme_ de blog oficial de gatsby (se ve familiar?), y le agregué una página que se conecta a una API abierta que encontré del gobierno que lista los regalos recibidos por funcionarios del gobierno según la ley de lobby (no tengo ninguna intención política con esto, solo necesitaba una API abierta y esta era más interesante que mostrar el dólar observado del día).
+
+Dejé todo lo relacionado al blog en sí sin adulterar, porque recuerda que el foco acá es conectar la API externa. Si navegas a `/donaciones`, podrás ver una lista con los datos que vienen de la API, donde puedes cambiar el número de página (la API viene con paginación) para obtener más resultados. Si navegas a `/.netlify/functions/graphql`, puedes ver el schema de graphql que generamos, e interactuar con los datos—esta es una de las mayores ventajas de esta tecnología sobre REST!
+
+### Resumen
+
+Si miras a la rápida este post, vas a ver que es muy largo y quizás te va a parecer muy complicado. La verdad es que no hay nada muy complejo acá, y la única complicación realmente viene de tener que manejar muchos archivos al mismo tiempo. Por eso voy a poner acá una especie de guía para que quede claro más adelante como se relacionan los archivos a las distintas funcionalidades que estamos armando. Todo lo que está acá es lo que haremos durante el resto del post, por lo que no va a hacer mucho sentido ahora---tómalo como referencia si te pierdes más adelante con qué archivo hace qué cosa o por qué está donde está. Notar que algunos aspectos de esta estructura vienen dados y no se pueden reemplazar (Gatsby) mientras que otros fueron los que elegí yo y puedes usar otro que te acomode (Apollo).
+
+- **Gatsby**: La base del app, cuenta principalmente con 3 grupos de archivos:
+  - Archivos de configuración, que van en la raíz del proyecto (`gatsby-config.js`, `gatsby-ssr.js` y `gatsby-browser.js`).
+  - Archivos de contenido, todos dentro de la carpeta `content`. Cuando quieres escribir un post, agregar un archivo `.mdx` (markdown + JSX) a la carpeta correspondiente y Gatsby lo convierte en una página.
+  - Archivos de funcionalidad, dentro de `src` y repartidos entre `components` y `pages` (cada archivo acá se traduce en una página del sitio). También están los archivos propios del _theme_ que estamos usando, y que podemos sobre-escribir (shadow) para cambiar aspectos como el layout.
+- **Apollo**: Usaremos Apollo en 2 formas: Apollo-Server para leer la API REST externa y servir un endpoint con un servidor de GraphQL, y Apollo-Client para acceder a estos datos dentro de la app.
+  - Server: Dentro de la carpeta `src/apollo/server` están los módulos que determinan el funcionamiento del servidor---`datasource.js` maneja la conexión al API externo, mientras que `resolvers.js` junta todos los resolvers que determinarán como _resolver_ los queries/mutations que le vamos a enviar desde el cliente. Finalmente, el servidor es inicializado en `src/lambda/graphql.js`, lo que es un poco confuso porque este archivo está 100% relacionado con los 2 anteriores, sin embargo tiene que estar acá para que Netlify lo reconozca como una función lambda y la construya.
+  - Client: Para poder usar el cliente de Apollo en gatsby, lo voy a inicializar en `src/apollo/client.js`, para luego importarlo con desde `gatsby-ssr.js` y `gatsby-browser.js` y así el `ApolloProvider` estará disponible en todos mis componentes (notar que hago esto a través de la función de utilidad en `src/apollo/wrap-root-element.js`).
+
+## Empezamos
+
+### Levantar el sitio gatsby
+
+Para empezar, crea un nuevo sitio de gatsby con los siguientes comandos. Si no tienes gatsby instalado, corre primero `npm install -g gatsby`.
+
+```bash
+$
+$ gatsby new gatsby-rest-apollo https://github.com/gatsbyjs/gatsby-starter-blog-theme
+$ cd gatsby-rest-apollo
+$ yarn install
+$ gatsby develop
+```
+
+Notar que `gatsby-rest-apollo` es el nombre que yo le puse al proyecto, y tu puedes elegir lo que quieras.
+
+Si ahora navegas en tu explorador a `http://localhost:8000`, vas a ver el sitio listo. Si lo único que estuvieramos haciendo es un blog nuevo, estás listo! Cada archivo markdown que incluyas en la carpeta `content/posts/` va a ser convertido en una página e incluido de manera automática—así de fácil es. Adicionalmente, estos archivos son tipo `mdx`, lo que te permite incluir componentes de react **directamente** en markdown! Luego lo conectas a netlify (al final veremos como hacer esto), y cada vez que hagas `git push origin master` se va a construir/publicar con tus cambios.
+
+### Instalar paquetes
+
+En esta aplicación usaremos varios paquetes externos, y además necesitamos cambiar algunos de los scripts que vienen por default del starter de gatsby. Reemplaza el `package.json` con lo siguiente:
+
+```json
+{
+  "name": "gatsby-rest-apollo-example",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "develop": "gatsby develop",
+    "start": "gatsby develop",
+    "start:app": "npm run develop",
+    "start:lambda": "netlify-lambda serve src/lambda",
+    "build": "gatsby build",
+    "build:app": "gatsby build",
+    "build:lambda": "netlify-lambda build src/lambda"
+  },
+  "dependencies": {
+    "@apollo/react-hooks": "^3.0.0",
+    "apollo-boost": "^0.4.4",
+    "apollo-datasource-rest": "^0.6.1",
+    "apollo-server-lambda": "^2.8.1",
+    "dotenv": "^8.0.0",
+    "gatsby": "^2.13.61",
+    "gatsby-cli": "^2.7.30",
+    "gatsby-theme-blog": "^1.0.2",
+    "graphql-tag": "^2.10.1",
+    "isomorphic-fetch": "^2.2.1",
+    "netlify-lambda": "^1.5.1",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
+    "styled-components": "^4.3.2"
+  }
+}
+```
+
+Y ahora anda a la terminal y corre `yarn install`. Corre `gatsby develop` de nuevo para confirmar que todo sigue en pie bien.
+
+### Construir el servidor de GraphQL
+
+Para empezar, vamos a armar un servidor con Apollo-server. Como en este caso el objetivo es incorporar REST, vamos a usar [Rest Data Source](https://www.apollographql.com/docs/apollo-server/features/data-sources/#rest-data-source). El beneficio de usar esto en lugar de simplemente hacer los calls con `fetch` desde los resolvers va a ser que vamos a conseguir todos los beneficios adicionales que da apollo con caching, y va a ser más fácil integrar varios APIs distintos. El proceso va a consistir en:
+
+1. Construir un schema –> Qué forma tienen tus datos
+2. Construir el datasource –> Cómo van a interactuar los resolvers con el API REST
+3. Armar los resolvers –> Qué tiene que pasar con cada _query_ o _mutation_.
+
+##### Schema
+
+Primero tenemos que entender qué datos tenemos. Voy a usar [ésta API](https://www.leylobby.gob.cl/docs.html) abierta del Gobierno de Chile, que, entre otras cosas, tiene un par de endpoints para ver las donaciones a funcionarios del gobierno. Ahí puedes ver que del endpoint principal de donations vas a recibir una lista con objetos, cada uno con información de la donación como receptor, cargo, etc. Entonces para empezar, crea un archivo en `src/lambda/` llamado `graphql.js`. Acá vamos a hacer todo lo necesario para crear el servidor de apollo, y convertirlo en una función serverless que puede ser manejada por netlify.
+
+Si estuvieramos armando un servidor que se levante por si solo (fuera de gatsby y netlify), en lugar de `graphql.js`, verías en la mayoría de los tutoriales que a este archivo lo llaman `server.js` o simplemente `index.js`, y lo ponen junto a los modulos con los resolvers y el schema.
+
+Si fuiste a ver la documentación de la API que puse arriba, vas a ver la forma en la que vienen los datos de vuelta. El primer paso ahora es traducir esto en un schema de GrapQL:
+
+```javascript
+// src/lambda/graphql.js
+const { ApolloServer, gql } = require("apollo-server-lambda");
+
+const typeDefs = gql`
+  scalar DateTime
+
+  type Query {
+    donations(page: Int, donationId: Int): [Donation!]!
+    donation(donationId: Int!): DonationDetail!
+  }
+
+  type Donation {
+    id_donativo: Int!
+    nombres: String!
+    apellidos: String!
+    pais: String
+    cargo: String
+    ocasion: String
+    descripcion: String
+    fecha: DateTime
+    nombre_institucion: String
+  }
+
+  type DonationDetail {
+    donation: Donation!
+    donantes: [Donor!]!
+  }
+
+  type Donor {
+    id_donativo: Int!
+    nombre: String!
+    pais: String!
+    tipo: String!
+    giro: String
+    actividades: String
+    domicilio: String
+    representante_legal: String
+    naturaleza: String
+    directorio: String
+  }
+`;
+```
+
+Acá definimos todo el schema que estará disponible de manera pública: Un `Donation` que consiste en un objecto con información básica del receptor, un tipo `DonationDetail` que incluye al `Donation` y también una lista con sus `Donors`, y la definición de estos donantes. Este es un schema pequeño y puedo incluirlo acá sin mucho problema—si creciera mucho, podrías moverlo a su propio archivo llamado `schema.graphql` e importarlo con :
+
+```javascript
+const { importSchema } = require("graphql-import");
+const path = require("path");
+
+const typeDefs = importSchema(path.resolve("src/schema.graphql"));
+```
+
+#### Data Source
+
+Luego, vamos a crear el datasource—un objeto que va a encapsular toda la lógica relacionada a nuestra interacción con la API externa. Crea un archivo llamado `datasource.js` en `src/apollo/server/`:
+
+```javascript
+//  src/apollo/server/datasource.js
+const { RESTDataSource, HTTPCache } = require("apollo-datasource-rest");
+
+class LobbyAPI extends RESTDataSource {
+  constructor() {
+    super();
+    this.baseURL = "https://www.leylobby.gob.cl/api/v1/";
+    this.httpCache = new HTTPCache();
+  }
+
+  // funciones por definir
+}
+module.exports = { LobbyAPI };
+```
+
+Este modulo va a crear un nuevo objeto que llamamos `LobbyAPI`, que hereda de RESTDataSource de Apollo. En el constructor definimos la url base a donde se harán los requests. Finalmente, se define una función para cada uno de los queries que queremos hacer. Es muy importante que para cada query que definas en tus resolver, tengas un método correspondiente en este archivo, o el datasource no va a saber que hacer. Para entender bien estás funciones, lo mejor es ir en paralelo con los resolvers, así que veamos eso primero y luego volvemos.
+
+#### Resolvers
+
+Los resolvers van a ir en otro archivo, y van a interactuar directamente con las funciones definidas en el data source. Tenemos que crear un resolver para cada query definido en nuestro schema:
+
+```javascript
+    donations(page: Int, donationId: Int): [Donation!]!
+    donation(donationId: Int!): DonationDetail!
+```
+
+Uno llamado `donations` que recibe 2 argumentos y devuelve una lista de objetos, y otro llamado `donation` que recibo un ID y devuelve un objeto. En esta guía voy a mostrar solamente el primer resolver, y el segundo es similar y está disponible en el repo.
+
+Empecemos con un resolver para obtener la lista de donaciones, disponible en `https://www.leylobby.gob.cl/api/v1/donations{?page}{?institucion}{?cargo_pasivo}`. Nuestro resolver va a tener que recibir argumentos para el número de página, el ID de la institución y el ID del cargo pasivo. Omitamos este último por simplicidad, y nuestro resolver se vería así:
+
+```javascript
+// src/apollo/server/resolvers.js
+const resolvers = {
+  Query: {
+    donations: async (parent, args, { dataSources }) => {
+      const { page, institutionId } = args;
+      const donations = await dataSources.lobbyAPI.getAllDonations(
+        page,
+        institutionId
+      );
+      return donations;
+    }
+  }
+};
+
+module.exports = resolvers;
+```
+
+Los resolvers siempre reciben 4 argumentos: `(parent, args, context, info)`, y en nuestro caso solo nos importan realmente 2: el contexto y los argumentos. Los argumentos van a ser las variables que le pasaremos a nuestro query, y que son convertidos en un objeto que podemos destructurar.
+
+El contexto va a venir con el dataSource que definimos en el paso anterior, que nos va a dar acceso a la función (aún por definir) que finalmente va a ser la que emite el request al API externo. Esta función que estamos llamando, `getAllDonations`, tenemos que definirla en el datasource para que reciba 2 argumentos, y tiene que devolver un lista de donations con la forma que definimos en el schema del primer paso. Este círculo es sin duda la parte más complicada y frustrante del proceso, ya que hay que estar muy concentrado en que va donde y que no falte nada, y si algo sale mal es difícil de encontrar. Vamos entonces a definir la función que recogerá los datos de la API:
+
+```javascript {11-18}
+//  src/apollo/server/datasource.js
+const { RESTDataSource, HTTPCache } = require("apollo-datasource-rest");
+
+class LobbyAPI extends RESTDataSource {
+  constructor() {
+    super();
+    this.baseURL = "https://www.leylobby.gob.cl/api/v1/";
+    this.httpCache = new HTTPCache();
+  }
+
+  async getAllDonations(page, institutionId) {
+    const donations = await this.get("donativos/", {
+      page,
+      institutionId
+    });
+    return donations.data;
+  }
+}
+module.exports = { LobbyAPI };
+```
+
+Y listo! eso es todo lo que necesitamos, ya que armamos el schema de manera que la API devuelve un objeto que en el atributo `data` contiene los datos que queremos con exactamente la forma que definimos. La función consiste solamente en llamar al método `get` de la clase base (podría ser `post` para un mutation) y le pasamos 2 argumentos: el `path` (relativo al URL base que definimos previamente) donde hacer el request, y un objeto con los parámetros. También podríamos incluir headers, data, etc.
+
+Para entenderlo bien, veamos como se vería en proceso completo. Si el cliente quiere ver una lista con los donations, abre el playground de graphql y ve en el schema que hay un query definido como `donations(page: Int, donationId: Int): [Donation!]!`, que recibe 2 argumentos, `page` y `donationId` y devuelve una lista de objetos llamados `Donation`. Si realiza un query como el siguiente:
+
+```graphql
+query {
+  donations(page: 16) {
+    nombres
+    apellidos
+  }
+}
+```
+
+Se gatilla el resolver, que lo único que hace es llamar al método `getAllDonations` que definimos en el datasource (y que recibe en el contexto) traspasando los argumentos que recibe. Finalmente, si vamos a esta función vemos que realiza un request `GET` al url `https://www.leylobby.gob.cl/api/v1/` + `donativos/`, entregando adicionalmente estos 2 argumentos como parámetros del request (van al final como `?page=16&insitucion=null`). Esta función recibe un objeto que guardamos en la constante `donations` y devuelve lo que está en el atributo `data`, que sabemos (mirando la documentación de la API externa) que es un objeto con la información que queremos. este objeto es traspasado directamente por el resolver (esta vez a través de la variable `donations`) y así llega finalmente al cliente, filtrando para entregar solamente los atributos requeridos por este: `nombres` y `apellidos`.
+
+El otro resolver, para el query `donation(id: Int!)` tiene una forma similar y no lo voy a incluir acá por espacio, pero lo puedes ver en el [repo](https://github.com/jcaguirre89/gatsby-rest/blob/master/src/apollo/server/resolvers.js). Esta API solamente va a realizar queries, ya que no tengo acceso a modificar datos que no son míos. Pero en un ejemplo más real donde estás interactuando totalmente con una base de datos, se pueden crear mutations con estos mismos pasos.
+
+Con los resolvers listos, volvemos al archivo base `graphql.js` para incorporarlos y dar por terminado el servidor:
+
+```javascript {3-4,25-36}
+// src/lambda/graphql.js
+const { ApolloServer, gql } = require("apollo-server-lambda");
+const { LobbyAPI } = require("../apollo/server/datasource");
+const resolvers = require("../apollo/server/resolvers");
+
+const typeDefs = gql`
+  scalar DateTime
+
+  type Query {
+    donations(page: Int, donationId: Int): [Donation!]!
+    donation(donationId: Int!): DonationDetail!
+  }
+
+  type Donation {
+	// ...
+  }
+
+  type DonationDetail {
+	// ...
+  }
+
+  type Donor {
+	// ...
+  }
+`;
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  dataSources: () => ({
+    lobbyAPI: new LobbyAPI()
+  })
+});
+
+// Exportar el servidor en una función del formato que netlify espera
+exports.handler = server.createHandler();
+```
+
+Por último, crea un archivo llamado `netlify.toml` en la raíz del proyecto con la configuración necesaria para que netlify sepa que hacer con esta función.
+
+```toml
+[build]
+  command = "yarn build"
+  functions = "built-lambda"
+  publish = "public"
+
+```
+
+Con esto listo, podemos inicializar nuestro servidor en development y ver como funciona. Abre otra terminal, y corre `NODE_ENV=development npm run start:lambda`. Si navegas a `localhost:9000/.netlify/functions/graphql`, vas a ver el _GraphQL Playground_ donde puedes interactuar con los queries que creaste. Pega este snippet para ver ejemplos de como funciona.
+
+```graphql
+query GET_DONATIONS {
+  donations(page: 1) {
+    nombres
+    apellidos
+    cargo
+    ocasion
+    descripcion
+  }
+}
+```
+
+### Incorporar nuestra nueva API en el cliente
+
+Con el servidor listo, vamos a conectarlo ahora con nuestro sitio gatsby usando Apollo-Client. Primero vamos a hacer
+los cambios necesarios en los archivos de configuración, y luego veremos como se puede acceder a esta data desde
+nuestros componentes. Este proceso es bastante estándar y los saqué casi literalmente de [éste repositorio](https://github.com/jlengstorf/gatsby-with-apollo) de Jason Lengstorf, que trabaja en Gatsby y tiene muy buen material para aprender.
+
+#### Creando el cliente
+
+Lo primero que hay que hacer es inicializar un nuevo cliente que se conecte a nuestro endpoint—lo haremos creando un
+archivo en `src/apollo/` llamado `client.js`. El cliente va a apuntar al url en donde netlify engancha nuestro servidor.
+
+```javascript
+// src/apollo/client.js
+import ApolloClient from "apollo-boost";
+import fetch from "isomorphic-fetch";
+
+export const client = new ApolloClient({
+  uri: "/.netlify/functions/graphql",
+  fetch
+});
+```
+
+Luego tenemos que incluir el ApolloProvider que recibe este cliente en nuestra aplicación. Normalmente, este se pone
+como wrapper a un componente alto en la jerarquía, como `App.js` si usáramos `create-react-app`, pero en este caso
+vamos a tener que hacerlo distinto para que funcione con gatsby y el server side rendering. Para esto creamos un
+archivo llamado `wrap-root-element.js`, que hará justamente esto, y luego lo usaremos como el único export desde 2
+archivos de configuración de gatsby: `gatsby-ssr.js` y `gatsby-browser.js`, que dictan el comportamiento de la app
+cuando está siendo ejecutada en el servidor y en el cliente, respectivamente. Estos archivos van en la raíz del proyecto, al mismo nivel que `gatsby-config.js`.
+
+```javascript
+// src/apollo/wrap-root-element.js
+import React from 'react'
+import { ApolloProvider } from '@apollo/react-hooks';
+import {client} from './client'
+
+export const wrapRootElement = ({ element }) => (
+  <ApolloProvider client={client}>
+    {element}
+  </ApolloProvider>
+  )
+
+
+// gatsby-browser.js
+export { wrapRootElement } from "./src/apollo/wrap-root-element";
+
+
+//gatsby-ssr.js
+export { wrapRootElement } from "./src/apollo/wrap-root-element";
+```
+
+Finalmente, para poder interactuar con el servidor en nuestra maquina local durante desarrollo, hay que crear una proxy desde donde se encuentra actualmente, `localhost:9000`, al dominio del cliente. Con este cambio, ahora vas a poder acceder al playground directamente desde `http://localhost:8000/.netlify/functions/graphql`. Abre `gatsby-config.js` e incluye lo siguiente:
+
+```javascript {1,10-20}
+const proxy = require("http-proxy-middleware");
+
+module.exports = {
+  plugins: [
+    // .....
+  ],
+  siteMetadata: {
+    // ....
+  },
+  developMiddleware: app => {
+    app.use(
+      "/.netlify/functions/",
+      proxy({
+        target: "http://localhost:9000",
+        pathRewrite: {
+          "/.netlify/functions/": ""
+        }
+      })
+    );
+  }
+};
+```
+
+### Incluyendo la data en nuestro componentes
+
+Con esto, finalmente podemos acceder a nuestra data usando los métodos que provee Apollo. A modo de ejemplo, voy a crear una página en `/donaciones` que va a cargar una lista con donaciones y mostrarla como tabla. Primero creamos esta página, creando el archivo `donaciones.js` en `src/pages/`.
+
+```javascript
+// src/pages/donaciones.js
+import React from "react";
+import Layout from "gatsby-theme-blog/src/components/layout";
+
+export default function donaciones() {
+  return (
+    <Layout location="/donaciones" title="Home">
+      <h2>Donaciones a funcionarios del gobierno</h2>
+    </Layout>
+  );
+}
+```
+
+Si vas a `localhost:8000/donaciones`, deberías ver esta página, prácticamente en blanco. Ahora creamos un componente ahora que reciba y muestre los datos en la consola.
+
+```javascript
+// src/components/getDonations.js
+import React from 'react'
+import gql from 'graphql-tag'
+import {useQuery} from '@apollo/react-hooks'
+
+const GET_DONATIONS = gql`
+query getDonations {
+  donations(page: 1) {
+    id_donativo
+    nombres
+    apellidos
+    cargo
+    ocasion
+    descripcion
+    fecha
+}}
+`
+
+export default function GetDonations() {
+  const { loading, error, data, refetch } = useQuery(GET_DONATIONS);
+
+  console.log(data)
+  return (
+  	<div>Nothing here yet</div>
+  )
+```
+
+Ahora vuelve a `donaciones.js` e incluyelo.
+
+```javascript {3,9}
+import React from "react";
+import Layout from "gatsby-theme-blog/src/components/layout";
+import GetDonations from "../components/getDonations";
+
+export default function donaciones() {
+  return (
+    <Layout location="/donaciones" title="Home">
+      <h2>Donaciones a funcionarios del gobierno</h2>
+      <GetDonations />
+    </Layout>
+  );
+}
+```
+
+Si haces refresh, deberías ver en la consola como se carga la data. Eso es todo! Ahora que tienes acceso a la data, puedes hacer lo que quieras. Para darle un poco más de interactividad a la cosa, incluyamos la posibilidad de cambiar el número de página a buscar, y mostremos la data en una tabla.
+
+```javascript
+import React, { useState } from "react";
+import gql from "graphql-tag";
+import styled from "styled-components";
+import { useQuery } from "@apollo/react-hooks";
+
+const GET_DONATIONS = gql`
+  query getDonations($page: Int) {
+    donations(page: $page) {
+      id_donativo
+      nombres
+      apellidos
+      cargo
+      ocasion
+      descripcion
+      fecha
+    }
+  }
+`;
+
+export default function GetDonations() {
+  const [page, setPage] = useState(1);
+  const { loading, error, data, refetch } = useQuery(GET_DONATIONS, {
+    variables: { page }
+  });
+
+  const handleChange = e => {
+    const newPage = parseInt(e.target.value);
+    setPage(newPage);
+    refetch({ newPage });
+  };
+
+  const renderTable = () => {
+    return data.donations.map(donation => (
+      <Tr key={donation.id_donativo}>
+        <Td>{donation.id_donativo}</Td>
+        <Td>{`${donation.nombres} ${donation.apellidos}`}</Td>
+        <Td>{donation.cargo}</Td>
+        <Td>{donation.ocasion}</Td>
+        <Td>{donation.descripcion}</Td>
+        <Td>{donation.fecha}</Td>
+      </Tr>
+    ));
+  };
+  return (
+    <div>
+      <div>
+        <input type="number" value={page} onChange={handleChange} />
+      </div>
+      <T>
+        <thead>
+          <Tr>
+            <Th>ID</Th>
+            <Th>Nombre receptor</Th>
+            <Th>Cargo</Th>
+            <Th>Ocasión</Th>
+            <Th>Descripción</Th>
+            <Th>Fecha</Th>
+          </Tr>
+        </thead>
+        <tbody>
+          {loading && (
+            <tr>
+              <td>Loading</td>
+            </tr>
+          )}
+          {data.donations && data.donations.length > 0 && renderTable()}
+        </tbody>
+      </T>
+    </div>
+  );
+}
+
+const T = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  color: #686f7a;
+  tbody:before {
+    content: "-";
+    display: block;
+    line-height: 0.6em;
+    color: transparent;
+  }
+`;
+
+const Th = styled.th`
+  text-align: "left";
+  font-size: 18px;
+  color: #686f7a;
+  font-weight: 700;
+  opacity: 0.65;
+`;
+
+const Td = styled.td`
+  text-align: "left";
+`;
+
+const Tr = styled.tr`
+  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
+`;
+```
+
+## Deployment a Netlify
+
+Con la app lista, ahora solo queda subirla para que todo el mundo la vea! Netlify hace esto muy fácil, y totalmente gratis. Subir una página de gatsby a netlify está [muy bien documentado](https://www.netlify.com/blog/2016/02/24/a-step-by-step-guide-gatsby-on-netlify/) así que no voy a repetirlo acá---y si hiciste los cambios que mencioné antes en el `package.json` y `netlify.toml`, ya estás listo para seguir las guías estándar.
+
+Una vez que hayas conectado tu cuenta de github a netlify, cada vez que hagas un push a master, netlify va a reconstruir tu aplicación y servirla vía sus CDNs.
+
+## Conclusión
+
+Bueno, eso fue bastante más largo de lo que me imaginé que iba a ser—y aún así siento que tuve que pasar cosas por encima! Espero que te sirva para tener una idea de lo que se puede hacer con las herramientas disponibles hoy en día. Si seguiste todos los pasos en este post, creaste una aplicación usando el famoso [JAMStack](https://jamstack.org/)—contenido dinámico e interfaces inteligentes, sin bases de datos, sin maquinas virtuales, sin load balancers, sin servidores—pero con todos los beneficios de server-side rendering como SEO y performance.
+
+Para otro post me gustaría mostrar una versión alternativa de lo que hicimos acá: he estado jugando com [Prisma](https://prisma.io) y [Next.js](https://nextjs.org/) y me ha encantado. Gatsby realmente reluce cuando el contenido de una app es principalmente estático (en el sentido que no necesita una base de datos para funcionar), como para un blog, restaurant, incluso e-commerce. Otro feature que me encanta de netlify es el CMS que provee, que se puede integrar con Gatsby si quieres hacer una página con contenido 100% editable por gente que jamás va a tener que tocar la terminal para usar git. Pero para aplicaciones más complejas, del tipo que se desarrollaría de manera especial para resolver problemas de negocio, ya se hace necesario interactuar con una base de datos y tener una aplicación más versátil. Next y Prisma permiten esto de una manera muy elegante, se puede conseguir sin mucho más código que el que usamos acá (la parte de Apollo es casi igual).
+
+Como hay mucho que digerir en este post, habilité los comentarios por si hay algo que no funciona o te gustaría que profundice más.

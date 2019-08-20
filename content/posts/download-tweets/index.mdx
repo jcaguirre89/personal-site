@@ -1,0 +1,119 @@
+---
+title: "Descargando información histórica de Twitter con Python"
+date: 2019-06-04
+author: Cristobal Aguirre
+hero: "../../../src/assets/random-code.PNG"
+---
+
+## Introduccion
+
+Este va a ser un articulo corto que va a introducir unas funciones de python para descargar información histórica de Twitter, que es una fuente invaluable para hacer análisis de texto (o como se refiere comúnmente, NLP, del inglés Natural Language Processing).
+
+Escribí este programita el fin de semana pasado jugando con la API de Twitter, pensando que sería interesante analizar como las tormentas en el sur de Chile se habían vivido por las redes sociales.
+
+Librerías como [spaCy](https://spacy.io) han puesto al alcance de todos la posibilidad de profundizar en el análisis de datos que incluyen texto _free form_ como le llaman en inglés—texto ingresado “a mano” por personas. Previamente, este tipo de dato no estructurado solía ser desperdiciado en gran parte por lo difícil que resultaba extraer información accionable, sin embargo con estos avances se abre la puerta a toda una nueva gama de oportunidades en la inteligencia de negocios.
+
+Así fue como descargue una base de 1.5 millones de tweets entre el 25 de mayo y el 1 de junio, y voy a seguir jugando a ver si sale algo digno de compartir. Pero por mientras, me pareció que la función para descargar los tweets podía ser más útil para otros, así que acá está. Puedes encontrar el código en [éste repositorio](https://github.com/jcaguirre89/twitter-scrape).
+
+## La API y librerias externas
+
+Este programa está escrito sobre la librería abierta [`python-twitter`](https://github.com/bear/python-twitter), que a su vez usa directamente la [API abierta de Twitter](https://developer.twitter.com/en/docs/tweets/search/api-reference/get-search-tweets.html). Esta API permite buscar, descargar y hasta crear tweets, sin embargo es medio compleja de usar (por eso hay tantas librerías de _wrapper_, e incluso otras como la mía que son la _wrapper_ del _wrapper_).
+
+En mi caso, solo me interesaba la funcionalidad de buscar y descargar tweets. La versión gratis de la API solo permite descargar hasta alrededor de 7 días de historia, así que si tu idea era tomar una serie más larga desde ya te la puedes ir replanteando (a menos que quieras pagar). Sin embargo, te sorprendería la cantidad de tweets que se escriben por minuto! en mi descarga, restringiendo a solo algunos _keywords_ como `Chile`, `Tornado`, `Sur`, `Piñera` y algunos más, conseguí bajar 1.5 millones de tweets—más que suficiente para cualquier modelo de _machine learning_ que se te pueda ocurrir.
+
+Otra limitación importante es que hay un número limitado de requests por minuto: actualmente solo puedes realizar 450 _requests_ (cada una a su vez limitada a un máximo de 100 tweets) por cada periodo de 15 minutos. Esto hace que, si tus parámetros de búsqueda son muy amplios, más vale prepararte para una buena espera—**mi base de 1.5M se demoró casi 20 horas en completar.**
+
+Lo último que hay que explicar antes de avanzar al código es el sistema de los _ids_ como identificador de fecha. [Este articulo de la documentación](https://developer.twitter.com/en/docs/tweets/timelines/guides/working-with-timelines.html) lo explica en lujo de detalle, per básicamente el problema es que se escriben tantos tweets por segundo que es impracticable hacer una búsqueda recursiva (necesario por las limitaciones: se sacan 100 tweets, después los 100 siguientes, y los 100 siguientes, etc.) basandose en fechas o en número de tweets extraídos. En vez, Twitter recomienda fijar el ID del último tweet descargado, y usarlo como ancla para la búsqueda siguiente—esto funciona porque el ID de cada tweet es un `int` que aumenta secuencialmente con cada uno que se crea.
+
+## Crear cuenta en Twitter - Developer
+
+El primer paso para usar este programa es tener credenciales de twitter para poder usar su API. El proceso es simple y está bien documentado en internet pero casi siempre en inglés, así que lo voy a cubrir brevemente acá.
+
+1. Anda a [este link](https://developer.twitter.com/en/apps), haz login con tu usuario de twitter y dale click en “Create an app”.
+2. Ponle un nombre (da lo mismo, es para ti solamente).
+3. Te va a pedir un sitio web para la app y otro el “Callback”. Ninguno aplica para nuestro uso pero igual hay que poner algo. El sitio web da lo mismo lo que pongas, y para el callback (que es necesario poner algo, aunque diga que puedes dejar en blanco, para obtener los tokens en el paso siguiente) yo simplemente puse `http://127.0.0.1:8888` que no tiene ninguna significancia.
+4. Luego te va a “confirmar”, un proceso que fue muy rápido y termina con que te mandan un mail diciendo que estás aceptado para usar las API.
+5. Finalmente, haz click en “Keys and tokens” en el menu de arriba y crea los tokens. vas a necesitar estas 4 claves para poder usar la API más abajo.
+
+## Jugando con la API
+
+Sin más antesala, acá va una descripción de las funciones y como usarla. Actualmente es bien limitada en su funcionalidad, permitiendo solo hacer búsquedas a partir de un término (o serie de términos) desde el más reciente hasta un ID específico. Sin embargo, no sería difícil extenderlo para permitir búsquedas durante ventanas específicas (mientras sean más recientes que 7 días) o para búsquedas por coordinadas geográficas (fue mi primera intención porque suena tan ideal, pero es una funcionalidad nueva de Twitter y tristemente muy pocos tweets vienen con coordenadas—de mi base solo 1.5% incluye _location_).
+
+Para usar el programa, lo primero que tienes que hacer es clonar el repositorio a tu computador local. Luego, hay que crear un archivo llamado `secrets.py` donde pondrás tus credenciales de Twitter-developer. Este archivo tiene que tener la siguiente estructura:
+
+```python
+from collections import namedtuple
+
+
+ApiKey = namedtuple('ApiKey', [
+    'CONSUMER_KEY',
+    'CONSUMER_SECRET',
+    'ACCESS_TOKEN',
+    'ACCESS_TOKEN_SECRET'
+])
+
+# Reemplaza con tus claves individuales
+api_key = ApiKey(
+    'consumer-key',
+    'consumer-secret',
+    'access-token',
+    'access-token-secret',
+)
+```
+
+Si te manejas un poco con python y no te gusta esta estructura, puedes reemplazarlo con variables de entorno (_environment variables_ en inglés) definidas en un archivo `.env` e importadas con una librería como [`python-decouple`](https://github.com/henriquebastos/python-decouple) (si usas Django ya sabes este proceso). Eso si, no te olvides de agregarlo al `.gitignore` para que no te lo incluya en git—no quieres tus claves y tokens secretos disponibles en github!
+
+Una vez listo esto, instala las librerías necesarias con `pip install -r requirements.txt` o `pip install python-twitter`, que es la única dependencia.
+
+Finalmente, si por ejemplo quieres descargar tweets en castellano que mencionen las palabras `U` o `descenso`, puedes hacerlo desde la terminal con:
+
+```bash
+$ python get_tweets.py --terms U,descenso --start_id 1132073789481787392 --lang es
+```
+
+De donde saqué el identificador `1132073789481787392`? Se que ese corresponde a los tweets que se escribieron alrededor del 25 de mayo, porque antes hice otra búsqueda y lo registré. Encontrar tu identificador que corresponda a las fechas que quieras es más arte que ciencia, pero básicamente tienes que empezar a jugar con la API (pero con ojo que si haces muchos requests te van a limitar y el programa va a dormir automáticamente) y encontrar el identificador que calza más o menos con las fechas que estas buscando. No es necesario proveer un `id` para correr la función—si lo omites, va a correr hasta llegar a los 7 días de historia disponible.
+
+La función va a crear un archivo CSV e ir agregando los tweets a medida que van llegando, de manera que si se cae por alguna razón o te aburres de esperar, igual vas a tener una base con los que se alcanzaron a descargar.
+
+## El codigo
+
+Por lo básica que es la funcionalidad actualmente, definitivamente recomiendo meterse a jugar con el código y ajustarla a tus necesidades. La función principal es un generador que va entregando los tweets uno por uno, hasta agotar la búsqueda. Éste es el generador:
+
+```python {12-13,19-20}
+def get_tweets(start_id, parameters):
+    """
+    Generador para buscar tweets.
+    :param start_id: `int`. Identificador del tweet mas antiguo a buscar
+    search API only returns up to around a week of history
+    :param parameters: diccionario con los parametros de busqueda
+    """
+    latest_tweets = api.GetSearch(**parameters)
+    if not len(latest_tweets):
+        return []
+    last_id = latest_tweets[-1].id
+    for tweet in latest_tweets:
+        yield tweet
+
+    while last_id >= start_id:
+        parameters['max_id'] = last_id - 1
+        results = api.GetSearch(**parameters)
+        if len(results):
+            for tweet in results:
+                yield tweet
+            last_id = results[-1].id
+            print(f'last seen: {last_id} @ {results[-1].created_at}')
+        else:
+            break
+```
+
+Las filas resaltadas muestran como se van entregando los resultados de la búsqueda. ¿Por qué dos veces? porque la primera vez que se busca, va a tomar el más reciente que encuentre, y va a devolver hasta 100 tweets porque ese es el limite. Luego, se registra este identificador ( en la línea que dice `last_id = results[-1].id`) y de ahí va buscando recursivamente hasta llegar al identificador “de antigüedad” determinado.
+
+Luego para llamar este generador, solo tienes que ponerlo dentro de un loop:
+
+```python
+tweets = []
+for tweet in get_tweets(start_id, parameters):
+    tweets.append(tweet)
+```
+
+Ojala les sirva y cualquier comentario me pueden mandar un mensaje personal en twitter (que no uso, irónicamente, pero si miro los mensajes).

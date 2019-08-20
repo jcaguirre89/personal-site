@@ -7,9 +7,9 @@ module.exports = {
     title: `Cristobal Aguirre`,
     name: `Cristobal Aguirre`,
     siteUrl: siteUrl,
-    description: `I learn by explaining things online. Chilean based in Vancouver, BC.`,
+    description: `Personal site by Cristobal Aguirre.`,
     hero: {
-      heading: `I learn by explaining things online. Chilean based in Vancouver, BC.`,
+      heading: `The best way to learn is by trying to explain things to others`,
       maxWidth: 652
     },
     social: [
@@ -24,19 +24,19 @@ module.exports = {
     ]
   },
   plugins: [
-            {
-              resolve: "@narative/gatsby-theme-novela",
-              options: {
-                contentPosts: "content/posts",
-                contentAuthors: "content/authors",
-                authorsPage: false,
-                basePath: "/",
-                sources: {
-                  contentful: false,
-                  local: true
-                }
-              }
-            },
+    {
+      resolve: "@narative/gatsby-theme-novela",
+      options: {
+        contentPosts: "content/posts",
+        contentAuthors: "content/authors",
+        authorsPage: false,
+        basePath: "/",
+        sources: {
+          contentful: false,
+          local: true
+        }
+      }
+    },
     {
       resolve: `gatsby-plugin-mdx`,
       options: {
@@ -99,19 +99,19 @@ module.exports = {
     },
     `gatsby-plugin-feed`,
     {
-      resolve: 'gatsby-plugin-robots-txt',
+      resolve: "gatsby-plugin-robots-txt",
       options: {
         host: siteUrl,
         sitemap: `${siteUrl}/sitemap.xml`,
-        policy: [{ userAgent: '*', allow: '/', disallow: '/forbidden' }],
+        policy: [{ userAgent: "*", allow: "/", disallow: "/forbidden" }],
         query: `{
           site {
             siteMetadata {
               siteUrl
             }
           }
-        }`,
-      },
-    },
+        }`
+      }
+    }
   ]
 };
