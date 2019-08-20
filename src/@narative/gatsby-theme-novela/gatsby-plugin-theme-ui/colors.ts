@@ -1,15 +1,18 @@
 import prism from './prism';
 
+const offBlack = '#242629';
+const offWhite = '#eeeeef';
+
 export default {
   prism,
-  primary: 'blue',
-  secondary: 'red',
+  primary: offBlack,
+  secondary: offBlack,
   grey: '#73737D',
-  background: 'red',
+  background: '#fff',
   accent: '#6166DC',
   hover: 'rgba(0, 0, 0, 0.07)',
   gradient: 'linear-gradient(180deg, rgba(217, 219, 224, 0) 0%, #D9DBE0 100%)',
-  articleText: '#08080B',
+  articleText: offBlack,
   track: 'rgba(8, 8, 11, 0.3)',
   progress: '#000',
   card: '#fff',
@@ -21,14 +24,14 @@ export default {
   modes: {
     dark: {
       grey: '#73737D',
-      primary: '#fff',
-      secondary: '#fff',
+      primary: offWhite,
+      secondary: offWhite,
       accent: '#E9DAAC',
-      background: '#111216',
+      background: offBlack,
       hover: 'rgba(255, 255, 255, 0.07)',
       gradient:
         'linear-gradient(180deg, #111216 0%, rgba(66, 81, 98, 0.36) 100%)',
-      articleText: '#fff',
+      articleText: offWhite,
       track: 'rgba(255, 255, 255, 0.3)',
       progress: '#fff',
       card: '#1D2128',
