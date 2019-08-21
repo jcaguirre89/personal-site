@@ -1,5 +1,6 @@
 ---
 title: "ML Part 1: Introducción a los arboles de decisión"
+excerpt: "El primer árticulo en esta serie introductoria de Machine Learning, donde cubriremos los árboles de decisión---el algoritmo base en los métodos más potentes que veremos más adelante"
 date: 2019-05-26
 author: Cristobal Aguirre
 hero: "./basic-tree.PNG"
@@ -19,10 +20,8 @@ Y como dicen que la mejor forma de aprender algo es tratar de explicárselo a al
 
 Un árbol de decisión es un método de estimación no paramétrico con muy buena capacidad de modelar datos heterogéneos (variables continuas y categóricas) y con buena tolerancia al ruido introducido por variables no relevantes.
 
-<figure>
-  <img src="classification-tree.PNG" alt="arbol basico de clasificacion"/>
-  <figcaption>Un árbol de decisión para clasificar flores según sus dimensiones. Fuente: Documentación de Scikit-learn.</figcaption>
-</figure>
+!["arbol basico de clasificacion"](classification-tree.PNG)
+
 El algoritmo es muy intuitivo, al representar de manera matemática el proceso que (a uno le gustaría pensar) usamos de manera intuitiva para llegar a una decisión o predicción: Comenzando desde arriba, se desarrollan una serie de reglas en base a los atributos disponibles para descartar opciones que no cumplen, hasta llegar a un resultado ideal para dichas condiciones (pensar en como Dr. House realizaba sus diagnósticos… presenta éste síntoma, por lo que no puede ser ésta condición, pero no presenta este otro así que no puede ser esa… podría ser lupus?).
 
 En el ejemplo anterior, si una flor tiene un largo de pétalo inferior a 2.45cm, debe ser tipo _setosa_. Si en cambio es mayor, y además el ancho del pétalo es mayor a 1.75cm, pero el largo del pétalo es mayor a 4.85cm, entonces debe ser del tipo _virginica_ (Notar que en este caso el atributo “largo de pétalo” aparece dos veces—esta es una ventaja de este estimador que le permite capturar relaciones complejas.)
@@ -31,16 +30,9 @@ El árbol cuenta con dos tipos de nodos: los nodos internos (de _tests_ o de _sp
 
 Gráficamente, también se puede representar (para dos variables explicativas de manera simple) como una partición del espacio en rectángulos en base a valores de quiebre en las variables explicativas, hasta obtener un espacio segmentado que consiste en distintas regiones—cada una correspondiendo a una predicción.
 
-<figure>
-  <img src="basic-tree.PNG" alt="arbol basico" />
-  <figcaption>
-    En el panel de arriba a la izquiera se muestra una partición ideal, y el de
-    abajo a la izquierda un arbol de decisión intentando aproximarse a ésta. En
-    el panel de arriba a la derecha se muestra el espacio que resulta de este
-    árbol, y abajo a la derecha la superficie de predicción. Fuente: Elements of
-    Statistical Learning, 2nd Edition.
-  </figcaption>
-</figure>
+![un arbol basico, fuente Elements of Statistical Learning](basic-tree.PNG)
+
+En el panel de arriba a la izquiera se muestra una partición ideal, y el de abajo a la izquierda un arbol de decisión intentando aproximarse a ésta. En el panel de arriba a la derecha se muestra el espacio que resulta de este árbol, y abajo a la derecha la superficie de predicción. Fuente: Elements of Statistical Learning, 2nd Edition.
 
 Existen múltiples algoritmos que implementan esta estrategia, pero esta explicación se va a concentrar en **CART** (Classification and Regression Trees), que obtiene los _splits_ de manera recursiva, y es el método más comúnmente implementado en las librerías como Scikit-learn. Cómo se determinan los _splits_ va a depender de si la variable a explicar es continua (regresión) o categórica (clasificación).
 
