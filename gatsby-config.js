@@ -54,6 +54,7 @@ module.exports = {
           { resolve: `gatsby-remark-copy-linked-files` },
           { resolve: `gatsby-remark-numbered-footnotes` },
           { resolve: `gatsby-remark-smartypants` },
+          { resolve: `gatsby-remark-responsive-iframe` },
           {
             resolve: "gatsby-remark-external-links",
             options: {
