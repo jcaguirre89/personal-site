@@ -2,7 +2,7 @@
 title: "Descargando información histórica de Twitter con Python"
 date: 2019-06-04
 author: Cristobal Aguirre
-hero: "../../../src/assets/random-code.PNG"
+hero: "./get-tweets.PNG"
 ---
 
 ## Introduccion
@@ -39,29 +39,10 @@ El primer paso para usar este programa es tener credenciales de twitter para pod
 
 Sin más antesala, acá va una descripción de las funciones y como usarla. Actualmente es bien limitada en su funcionalidad, permitiendo solo hacer búsquedas a partir de un término (o serie de términos) desde el más reciente hasta un ID específico. Sin embargo, no sería difícil extenderlo para permitir búsquedas durante ventanas específicas (mientras sean más recientes que 7 días) o para búsquedas por coordinadas geográficas (fue mi primera intención porque suena tan ideal, pero es una funcionalidad nueva de Twitter y tristemente muy pocos tweets vienen con coordenadas—de mi base solo 1.5% incluye _location_).
 
-Para usar el programa, lo primero que tienes que hacer es clonar el repositorio a tu computador local. Luego, hay que crear un archivo llamado `secrets.py` donde pondrás tus credenciales de Twitter-developer. Este archivo tiene que tener la siguiente estructura:
-
-```python
-from collections import namedtuple
-
-
-ApiKey = namedtuple('ApiKey', [
-    'CONSUMER_KEY',
-    'CONSUMER_SECRET',
-    'ACCESS_TOKEN',
-    'ACCESS_TOKEN_SECRET'
-])
-
-# Reemplaza con tus claves individuales
-api_key = ApiKey(
-    'consumer-key',
-    'consumer-secret',
-    'access-token',
-    'access-token-secret',
-)
-```
-
-Si te manejas un poco con python y no te gusta esta estructura, puedes reemplazarlo con variables de entorno (_environment variables_ en inglés) definidas en un archivo `.env` e importadas con una librería como [`python-decouple`](https://github.com/henriquebastos/python-decouple) (si usas Django ya sabes este proceso). Eso si, no te olvides de agregarlo al `.gitignore` para que no te lo incluya en git—no quieres tus claves y tokens secretos disponibles en github!
+Para usar el programa, lo primero que tienes que hacer es clonar el repositorio a tu computador local. Luego, tienes
+que crear un archivo `.env` con las las claves secretas que creaste más arriba en tu cuenta de Twitter Developer. El
+repositorio incluye un archivo `sample.env` que puedes renombrar (quitando el `sample`) y reemplazar con tus tokens
+privados. 
 
 Una vez listo esto, instala las librerías necesarias con `pip install -r requirements.txt` o `pip install python-twitter`, que es la única dependencia.
 
