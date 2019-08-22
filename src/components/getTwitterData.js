@@ -1,12 +1,13 @@
 import React, {useState, useEffect} from 'react';
-import axios from 'axios'
+import axios from 'axios';
+import ReactWordCloud from 'react-wordcloud';
 
 const useTwitterApi = () => {
   const [data, setData] = useState([]);
   const [params, setParams] = useState({
     url:
       'https://5zoc7b1wnf.execute-api.us-east-1.amazonaws.com/default/scrape_twitter_api',
-    terms: 'Santiago',
+    terms: 'Maradona',
     lang: 'es',
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -46,8 +47,8 @@ const useTwitterApi = () => {
 };
 
 function GetTwitterData() {
-  const [terms, setTerms] = useState('Chile')
-  const lang = 'es'
+  const [terms, setTerms] = useState('Chile');
+  const lang = 'es';
   const url =
     'https://5zoc7b1wnf.execute-api.us-east-1.amazonaws.com/default/scrape_twitter_api';
 
@@ -62,17 +63,42 @@ function GetTwitterData() {
       lang,
     }),
   };
-  
-  const [{ data, isLoading, isError }, doFetch] = useTwitterApi();
 
-  console.log(data);
+  const [{data, isLoading, isError}, doFetch] = useTwitterApi();
+
+  const usernames = data.map(tweet => tweet.user_handle);
+  const usernameCount = usernames.reduce((obj, item) => {
+    if (!obj[item]) {
+      obj[item] = 0;
+    }
+    obj[item]++;
+    return obj;
+  }, {});
+
+  const usernameArray = Object.entries(usernameCount)
+    .filter(([k, v]) => v > 1)
+    .map(([k, v]) => {
+      return {text: k, value: v};
+    });
+
+  const wordCloudOptions = {
+    colors: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b'],
+    enableTooltip: true,
+    deterministic: true,
+    fontFamily: 'impact',
+    fontSizes: [5, 60],
+  };
+
+  console.log(data)
+
   return (
     <div>
-      <form onSubmit={event => {
-        doFetch({url, terms, lang})
+      <form
+        onSubmit={event => {
+          doFetch({url, terms, lang});
 
-        event.preventDefault();
-      }}>
+          event.preventDefault();
+        }}>
         <input
           type="text"
           value={terms}
@@ -80,7 +106,12 @@ function GetTwitterData() {
         />
         <button type="submit">Search</button>
       </form>
-
+      {isLoading && <div>Loading...</div>}
+      {!isLoading && usernameArray && usernameArray.length > 0 && (
+        <div style={{width: 600, height: 400}}>
+          <ReactWordCloud options={wordCloudOptions} words={usernameArray} />
+        </div>
+      )}
     </div>
   );
 }
