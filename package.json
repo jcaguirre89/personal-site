@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@narative/gatsby-theme-novela": "^0.*",
+    "axios": "^0.19.0",
     "dotenv": "^8.0.0",
     "gatsby": "^2.13.41",
     "gatsby-plugin-feed": "^2.3.7",
