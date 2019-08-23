@@ -9,33 +9,33 @@ module.exports = {
     siteUrl: siteUrl,
     description: `Personal site by Cristobal Aguirre.`,
     hero: {
-      heading: `The best way to learn is by trying to explain things to others`,
-      maxWidth: 652,
+      heading: `The best time to plant a tree was 20 years ago—the second best time is now`,
+      maxWidth: 652
     },
     social: [
       {
         name: `twitter`,
-        url: `https://twitter.com/jcaguirre89`,
+        url: `https://twitter.com/jcaguirre89`
       },
       {
         name: `github`,
-        url: `https://github.com/jcaguirre89`,
-      },
-    ],
+        url: `https://github.com/jcaguirre89`
+      }
+    ]
   },
   plugins: [
     {
-      resolve: '@narative/gatsby-theme-novela',
+      resolve: "@narative/gatsby-theme-novela",
       options: {
-        contentPosts: 'content/posts',
-        contentAuthors: 'content/authors',
+        contentPosts: "content/posts",
+        contentAuthors: "content/authors",
         authorsPage: false,
-        basePath: '/',
+        basePath: "/",
         sources: {
           contentful: false,
-          local: true,
-        },
-      },
+          local: true
+        }
+      }
     },
     {
       resolve: `gatsby-plugin-mdx`,
@@ -48,37 +48,37 @@ module.exports = {
               maxWidth: 10000,
               linkImagesToOriginal: false,
               quality: 80,
-              withWebp: true,
-            },
+              withWebp: true
+            }
           },
-          {resolve: `gatsby-remark-copy-linked-files`},
-          {resolve: `gatsby-remark-numbered-footnotes`},
-          {resolve: `gatsby-remark-smartypants`},
-          {resolve: `gatsby-remark-responsive-iframe`},
+          { resolve: `gatsby-remark-copy-linked-files` },
+          { resolve: `gatsby-remark-numbered-footnotes` },
+          { resolve: `gatsby-remark-smartypants` },
+          { resolve: `gatsby-remark-responsive-iframe` },
           {
-            resolve: 'gatsby-remark-external-links',
+            resolve: "gatsby-remark-external-links",
             options: {
-              target: '_blank',
-              rel: 'noreferrer',
-            },
+              target: "_blank",
+              rel: "noreferrer"
+            }
           },
           {
             resolve: `gatsby-remark-katex`,
             options: {
               // Add any KaTeX options from https://github.com/KaTeX/KaTeX/blob/master/docs/options.md here
-              strict: `ignore`,
-            },
-          },
+              strict: `ignore`
+            }
+          }
         ],
-        remarkPlugins: [require(`remark-slug`)],
-      },
+        remarkPlugins: [require(`remark-slug`)]
+      }
     },
     {
-      resolve: 'gatsby-source-contentful',
+      resolve: "gatsby-source-contentful",
       options: {
         spaceId: process.env.CONTENTFUL_SPACE_ID,
-        accessToken: process.env.CONTENTFUL_ACCESS_TOKEN,
-      },
+        accessToken: process.env.CONTENTFUL_ACCESS_TOKEN
+      }
     },
     {
       resolve: `gatsby-plugin-manifest`,
@@ -89,36 +89,36 @@ module.exports = {
         background_color: `#fff`,
         theme_color: `#fff`,
         display: `standalone`,
-        icon: `src/assets/favicon.png`,
-      },
+        icon: `src/assets/favicon.png`
+      }
     },
     {
       resolve: `gatsby-plugin-google-analytics`,
       options: {
-        trackingId: `UA-140859234-1`,
-      },
+        trackingId: `UA-140859234-1`
+      }
     },
     `gatsby-plugin-feed`,
     {
-      resolve: 'gatsby-plugin-robots-txt',
+      resolve: "gatsby-plugin-robots-txt",
       options: {
         host: siteUrl,
         sitemap: `${siteUrl}/sitemap.xml`,
-        policy: [{userAgent: '*', allow: '/', disallow: '/forbidden'}],
+        policy: [{ userAgent: "*", allow: "/", disallow: "/forbidden" }],
         query: `{
           site {
             siteMetadata {
               siteUrl
             }
           }
-        }`,
-      },
+        }`
+      }
     },
     {
       resolve: `gatsby-plugin-disqus`,
       options: {
-        shortname: `cristobal-aguirre`,
-      },
-    },
-  ],
+        shortname: `cristobal-aguirre`
+      }
+    }
+  ]
 };

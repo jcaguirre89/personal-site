@@ -2,3 +2,10 @@
   color: #099;
   font-size: 2rem !important;
 }
+
+@font-face {
+  font-family: "HK Grotesk";
+  src: url("../fonts/hkgrotesk-bold.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}

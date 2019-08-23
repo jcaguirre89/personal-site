@@ -4,13 +4,14 @@ excerpt: "Un programa sencillo escrito en Python para descarga información hist
 date: 2019-06-04
 author: Cristobal Aguirre
 hero: "./get-tweets.PNG"
+slug: "scraping twitter with python"
 ---
 
 ## Introduccion
 
 Este va a ser un articulo corto que va a introducir unas funciones de python para descargar información histórica de Twitter, que es una fuente invaluable para hacer análisis de texto (o como se refiere comúnmente, NLP, del inglés Natural Language Processing).
 
-Escribí este programita el fin de semana pasado jugando con la API de Twitter, pensando que sería interesante analizar como las tormentas en el sur de Chile se habían vivido por las redes sociales.
+Escribí esta pequeña función el fin de semana pasado jugando con la API de Twitter, pensando que sería interesante analizar como las tormentas en el sur de Chile se habían vivido por las redes sociales.
 
 Librerías como [spaCy](https://spacy.io) han puesto al alcance de todos la posibilidad de profundizar en el análisis de datos que incluyen texto _free form_ como le llaman en inglés—texto ingresado “a mano” por personas. Previamente, este tipo de dato no estructurado solía ser desperdiciado en gran parte por lo difícil que resultaba extraer información accionable, sin embargo con estos avances se abre la puerta a toda una nueva gama de oportunidades en la inteligencia de negocios.
 
@@ -43,7 +44,7 @@ Sin más antesala, acá va una descripción de las funciones y como usarla. Actu
 Para usar el programa, lo primero que tienes que hacer es clonar el repositorio a tu computador local. Luego, tienes
 que crear un archivo `.env` con las las claves secretas que creaste más arriba en tu cuenta de Twitter Developer. El
 repositorio incluye un archivo `sample.env` que puedes renombrar (quitando el `sample`) y reemplazar con tus tokens
-privados. 
+privados.
 
 Una vez listo esto, instala las librerías necesarias con `pip install -r requirements.txt` o `pip install python-twitter`, que es la única dependencia.
 
