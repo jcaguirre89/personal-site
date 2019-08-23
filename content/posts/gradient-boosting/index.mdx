@@ -3,6 +3,7 @@ title: "ML Part 3: Gradient Boosting"
 author: Cristobal Aguirre
 date: 2019-06-26
 hero: "./golf-MSE.PNG"
+slug: "gradient-boosting"
 excerpt: "El último post de la serie, donde crearemos una máquina de Gradient Boosting desde 0 en Python"
 ---
 
@@ -23,18 +24,11 @@ En vez, voy a tomar un enfoque un poco distinto que asume un conocimiento básic
 ## Repaso rápido de la teória
 
 La técnica consiste básicamente en estimar una serie de estimadores débiles de manera **secuencial**, con cada
-estimador corrigiendo los errores (figurativa y a veces literalmente) del estimador anterior. El _Boosting_ en el
-nombre del algoritmo viene de este proceso aditivo para juntar estimadores débiles, mientras que el _Gradient_ viene
-del hecho que se usa la técnica conocida en inglés como _Gradient Descent_ para la optimización. Como se ve en esta
-imagen que saque del tercer post en la serie de 3 recomendada más arriba, el proceso consiste en estimar
-secuencialmente estimadores que van acercándose de a poco a la meta, usando el negativo del gradiente de la función de
-pérdida (el gradiente es el vector de derivadas, que en este caso se puede interpretar mucho más fácilmente como los _pseudo-residuos_) evaluada en el paso anterior para estimar el siguiente estimador (más adelante viene la explicación detallada).
+estimador corrigiendo los errores del estimador anterior. Esta imágen que tomé de uno de los posts recomendados más arriba es una buena forma de visualizar el proceso:
 
 ![Ejemplo de gradient descent con golfista](golf-MSE.PNG)
 
-Es mucho más fácil interpretar esto tomando el error cuadrático medio como función de pérdida, ya que su gradiente es equivalente a los residuos comunes $y - f(x)$ (en lo que sigue, voy a referirme solo al caso de regresión y a estos simplemente como los residuos para hacer más fácil la interpretación.) Entonces, en cada paso $m$ se calculan los residuos entre la variable objetivo y la estimación del paso anterior $f_{m-1}$, y se estima un nuevo estimador $f_m$ que busque “explicar” estos residuos.
-
-Al final del proceso, el estimador final $F_m(x)$ consistirá en un estimador base $f_0$, que puede ser una serie de 0’s, el promedio, la mediana, etc., y una sumatoria de $m$ estimadores débiles $f_m(x)$, ajustados por un parámetro de regulación $\eta$ que afecta la contribución de cada estimador al estimador final (conocido en inglés como _shrinkage_ o _learning rate_).
+En términos matemáticos, en cada paso $m$ se va a estimar un estimador $f_m(x)$ sobre los residuos entre la variable objetivo y la estimación del paso anterior $f_{m-1}(x)$. Al final del proceso, el estimador final $F_m(x)$ consistirá en un estimador base $f_0$---que puede ser una serie de 0’s, el promedio, la mediana, etc.---y una sumatoria de $m$ estimadores débiles $f_m(x)$, ajustados por un parámetro de regularización $\eta$ que afecta la contribución de cada estimador al estimador final (conocido en inglés como _shrinkage_ o _learning rate_) para controlar el _overfitting_.
 
 $$
 F_M(x) = f_0 + \eta \sum_m^M f_m(x)
@@ -46,21 +40,23 @@ $$
 F_m(x) = F_{m-1}(x) + \eta f_m(x)
 $$
 
-En el caso del error cuadrático medio, el algoritmo consiste en:
+Uno de los principales atractivos de ésta técnica es que es te permite usar distintas funciones de pérdida, lo que le da un montón de flexibilidad; sin embargo, yo creo que la forma más fácil de entenderlo es tomando el caso de la regresión (variable dependiente contínua), tomando como función de pérdida el error cuadrático medio---esta función tiene la gracia de que su gradiente equivale a los residuos comunes $y - f(x)$.
 
-1. Estimar un estimador base $F_{0}$
+En este caso, el algoritmo consiste en:
+
+1. Partir de un estimador base $F_{0}$ (por ejemplo el promedio de la variable objetivo)
 2. Calcular el gradiente (residuos entre la variable objetivo y este estimador): $y - F_0(x)$
 3. Estimar un estimador débil a estos residuos $f_1(x) = y - F_0(x)$
 4. Actualizar el estimador agregado con esta nueva estimación $F_1(x) = F_0 + \eta f_1(x)$
 5. Repetir los pasos 2-4 $m$ veces. El siguiente paso calcularía un estimador débil $f_2(x)$ sobre los residuos $y - F_1(x)$, para obtener $F_2(x) = F_1 + \eta f_2(x)$, y así sucesivamente.
 
-## El proceso en código
+## Show me the code
 
-Este proceso es mucho más fácil de apreciar mirando una implementación simple en código. Sin embargo, mirar los códigos base de implementaciones populares como las de Scikit-learn o XGBoost son de poca ayuda porque hacen muchos ajustes de optimización y versatilidad que mejoran la calidad del estimador pero implican demasiadas líneas de código, lo que hace difícil apreciar el algoritmo de fondo. El código completo lo pueden encontrar en [este repositorio](https://github.com/jcaguirre89/gboost).
+Este proceso es mucho más fácil de apreciar mirando una implementación simple en código. Sin embargo, mirar los códigos base de implementaciones populares como las de Scikit-learn o XGBoost son de poca ayuda porque hacen muchos ajustes de optimización y versatilidad que mejoran la calidad del estimador pero implican demasiadas líneas de código, lo que hace difícil apreciar el algoritmo de fondo.
 
 Lo que sigue es una implementación que quita todo el _fluff_ del proceso y deja los puros huesos—sorprendentemente (para mi) logrando sin embargo capacidad predictiva bastante competitiva. Pueden ver un notebook con algunas comparaciones en el mismo repositorio, o directamente [acá](https://github.com/jcaguirre89/gboost/blob/master/example.ipynb).
 
-Empecemos con la función de pérdida. Este ejemplo simple va a soportar tres tipos: error cuadrático, error absoluto, y la función logística (para clasificación binaria). Todos los ejemplos que vi haciendo research para este post se concentran en regresión, porque es tanto más fácil interpretar el algoritmo con la función de error cuadrática como hice más arriba, pero quiero que este post demuestre también como el algoritmo es extensible a otros problemas, dándole la versatilidad que lo hace famoso.
+Empecemos con la función de pérdida. Este ejemplo simple va a soportar tres tipos: error cuadrático, error absoluto, y la función logística (para clasificación binaria). Todos los ejemplos que vi haciendo research para este post se concentran en regresión, porque es tanto más fácil interpretar el algoritmo con la función de error cuadrática como hice más arriba, pero quiero que este post demuestre también como el algoritmo es extendible a otros problemas, dándole la versatilidad que lo hace famoso.
 
 Definiremos el gradiente de cada función de pérdida de manera simple, con las siguientes funciones:
 
@@ -167,7 +163,7 @@ def predict(self, X):
     return f_0 + boosting
 ```
 
-Toda la magia está realmente en las líneas resaltadas. El paso 1 consiste en llamar el método `predict`, que vaa a tomar todos los estimadores almacenados en la lista `_estimators` para calcular la predicción, es decir, equivale a $F_m = F_0 + \eta F_1 + \eta F_2 + ...$. Luego se toma esta predicción y se llama al método `gradient` definido previamente para calcular los residuos en el paso 2, pero ahora debería quedar más claro que en realidad no tienen por qué ser necesariamente los residuos, sino que cualquier función que describa una divergencia entre la variable objetivo y la estimación. El paso 3 estima el nuevo estimador, pero usando los residuos como variable objetivo (la función auxiliar `clone` de scikit-learn solamente sirve para crear una copia).
+Toda la magia está realmente en las líneas resaltadas. El paso 1 consiste en llamar el método `predict`, que va a tomar todos los estimadores almacenados en la lista `_estimators` para calcular la predicción, es decir, equivale a $F_m = F_0 + \eta F_1 + \eta F_2 + ...$. Luego se toma esta predicción y se llama al método `gradient` definido previamente para calcular los residuos en el paso 2, pero ahora debería quedar más claro que en realidad no tienen por qué ser necesariamente los residuos, sino que cualquier función que describa una divergencia entre la variable objetivo y la estimación. El paso 3 estima el nuevo estimador, pero usando los residuos como variable objetivo (la función auxiliar `clone` de scikit-learn solamente sirve para crear una copia).
 
 ### Extendiendo a clasificación
 
@@ -191,7 +187,7 @@ def predict_class(self, X):
       )
 ```
 
-Con estos dos métodos finales terminamos la implementación, que con toda la funcionalidad básica y desempeño comparable a las de _full scale_, pero sin los controles y optimizaciones, alcanza apenas 60 líneas.
+Con estos dos métodos finales terminamos la implementación, que con toda la funcionalidad básica y desempeño comparable a las de _full scale_, pero sin los controles ni optimizaciones, alcanza menos de 50 líneas.
 
 ```python
 from sklearn.base import clone, BaseEstimator
