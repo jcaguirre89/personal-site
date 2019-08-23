@@ -185,15 +185,15 @@ const FooterNext = styled.h3`
     content: '';
     position: absolute;
     background: ${p => p.theme.colors.grey};
-    width: ${(910 / 1140) * 100}%;
+    width: ${(800 / 1140) * 100}%;
     height: 1px;
     right: 0;
     top: 11px;
     ${mediaqueries.tablet`
-      width: ${(600 / 1140) * 100}%;
+      width: ${(500 / 1140) * 100}%;
     `}
     ${mediaqueries.phablet`
-      width: ${(400 / 1140) * 100}%;
+      width: ${(300 / 1140) * 100}%;
     `}
     ${mediaqueries.phone`
       width: 90px
