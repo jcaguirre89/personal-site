@@ -2,6 +2,8 @@ require('dotenv').config();
 
 const siteUrl = `https://www.cristobal-aguirre.com`;
 
+const mdxFeed = require('gatsby-mdx/feed')
+
 module.exports = {
   siteMetadata: {
     title: `Cristobal Aguirre`,
@@ -98,7 +100,10 @@ module.exports = {
         trackingId: `UA-140859234-1`
       }
     },
-    `gatsby-plugin-feed`,
+    {
+      resolve: `gatsby-plugin-feed`,
+      options: mdxFeed,
+    },
     {
       resolve: "gatsby-plugin-robots-txt",
       options: {
