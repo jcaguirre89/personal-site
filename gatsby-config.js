@@ -2,8 +2,6 @@ require('dotenv').config();
 
 const siteUrl = `https://www.cristobal-aguirre.com`;
 
-const mdxFeed = require('gatsby-mdx/feed')
-
 module.exports = {
   siteMetadata: {
     title: `Cristobal Aguirre`,
@@ -102,7 +100,45 @@ module.exports = {
     },
     {
       resolve: `gatsby-plugin-feed`,
-      options: mdxFeed,
+      feeds: [
+        {
+          serialize: ({ query: { allMdx } }) => {
+            return allMdx.edges.map(edge => {
+              return {
+                ...edge.node.frontmatter,
+                description: edge.node.excerpt,
+                url: siteUrl + edge.node.fields.slug,
+                guid: siteUrl + edge.node.fields.slug
+              };
+            });
+          },
+          query: `
+      {
+        allMdx(
+          limit: 1000,
+          sort: {
+            order: DESC,
+            fields: [frontmatter___date]
+          }
+        ) {
+          edges {
+            node {
+              frontmatter {
+                title
+                date
+              }
+              fields {
+                slug
+              }
+              excerpt
+            }
+          }
+        }
+      }
+    `,
+          output: `rss.xml`
+        }
+      ]
     },
     {
       resolve: "gatsby-plugin-robots-txt",
