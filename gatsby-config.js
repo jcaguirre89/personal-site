@@ -98,63 +98,63 @@ module.exports = {
         trackingId: `UA-140859234-1`
       }
     },
-    {
-      resolve: `gatsby-plugin-feed`,
-      feeds: [
-        {
-          serialize: ({ query: { allMdx } }) => {
-            return allMdx.edges.map(edge => {
-              return {
-                ...edge.node.frontmatter,
-                description: edge.node.excerpt,
-                url: siteUrl + edge.node.fields.slug,
-                guid: siteUrl + edge.node.fields.slug
-              };
-            });
-          },
-          query: `
-      {
-        allMdx(
-          limit: 1000,
-          sort: {
-            order: DESC,
-            fields: [frontmatter___date]
-          }
-        ) {
-          edges {
-            node {
-              frontmatter {
-                title
-                date
-              }
-              fields {
-                slug
-              }
-              excerpt
-            }
-          }
-        }
-      }
-    `,
-          output: `rss.xml`
-        }
-      ]
-    },
-    {
-      resolve: "gatsby-plugin-robots-txt",
-      options: {
-        host: siteUrl,
-        sitemap: `${siteUrl}/sitemap.xml`,
-        policy: [{ userAgent: "*", allow: "/", disallow: "/forbidden" }],
-        query: `{
-          site {
-            siteMetadata {
-              siteUrl
-            }
-          }
-        }`
-      }
-    },
+    // {
+    //   resolve: `gatsby-plugin-feed`,
+    //   feeds: [
+    //     {
+    //       serialize: ({ query: { allMdx } }) => {
+    //         return allMdx.edges.map(edge => {
+    //           return {
+    //             ...edge.node.frontmatter,
+    //             description: edge.node.excerpt,
+    //             url: siteUrl + edge.node.fields.slug,
+    //             guid: siteUrl + edge.node.fields.slug
+    //           };
+    //         });
+    //       },
+    //       query: `
+    //   {
+    //     allMdx(
+    //       limit: 1000,
+    //       sort: {
+    //         order: DESC,
+    //         fields: [frontmatter___date]
+    //       }
+    //     ) {
+    //       edges {
+    //         node {
+    //           frontmatter {
+    //             title
+    //             date
+    //           }
+    //           fields {
+    //             slug
+    //           }
+    //           excerpt
+    //         }
+    //       }
+    //     }
+    //   }
+    // `,
+    //       output: `rss.xml`
+    //     }
+    //   ]
+    // },
+    // {
+    //   resolve: "gatsby-plugin-robots-txt",
+    //   options: {
+    //     host: siteUrl,
+    //     sitemap: `${siteUrl}/sitemap.xml`,
+    //     policy: [{ userAgent: "*", allow: "/", disallow: "/forbidden" }],
+    //     query: `{
+    //       site {
+    //         siteMetadata {
+    //           siteUrl
+    //         }
+    //       }
+    //     }`
+    //   }
+    // },
     {
       resolve: `gatsby-plugin-disqus`,
       options: {
