@@ -26,7 +26,7 @@ export default {
       grey: "#73737D",
       primary: offWhite,
       secondary: offWhite,
-      accent: "#E9DAAC",
+      accent: "hsla(9, 80%, 70%, 1)",
       background: offBlack,
       hover: "rgba(255, 255, 255, 0.07)",
       gradient: `linear-gradient(180deg, ${offBlack} 0%, rgba(66, 81, 98, 0.36) 100%)`,

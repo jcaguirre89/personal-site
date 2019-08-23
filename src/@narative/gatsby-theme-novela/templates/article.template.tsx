@@ -1,27 +1,27 @@
-import React, {useRef, useState, useEffect} from 'react';
-import styled from '@emotion/styled';
-import throttle from 'lodash/throttle';
-import {graphql, useStaticQuery} from 'gatsby';
-import {Disqus} from 'gatsby-plugin-disqus';
+import React, { useRef, useState, useEffect } from "react";
+import styled from "@emotion/styled";
+import throttle from "lodash/throttle";
+import { graphql, useStaticQuery } from "gatsby";
+import { Disqus } from "gatsby-plugin-disqus";
 
-import Layout from '@narative/gatsby-theme-novela/src/components/Layout';
-import MDXRenderer from '@narative/gatsby-theme-novela/src/components/MDX';
-import Progress from '@narative/gatsby-theme-novela/src/components/Progress';
-import Section from '@narative/gatsby-theme-novela/src/components/Section';
-import Subscription from '@narative/gatsby-theme-novela/src/components/Subscription';
+import Layout from "@narative/gatsby-theme-novela/src/components/Layout";
+import MDXRenderer from "@narative/gatsby-theme-novela/src/components/MDX";
+import Progress from "@narative/gatsby-theme-novela/src/components/Progress";
+import Section from "@narative/gatsby-theme-novela/src/components/Section";
+import Subscription from "@narative/gatsby-theme-novela/src/components/Subscription";
 
-import mediaqueries from '@narative/gatsby-theme-novela/src/styles/media';
-import {debounce} from '@narative/gatsby-theme-novela/src/utils';
+import mediaqueries from "@narative/gatsby-theme-novela/src/styles/media";
+import { debounce } from "@narative/gatsby-theme-novela/src/utils";
 
-import ArticleAside from '@narative/gatsby-theme-novela/src/sections/article/Article.Aside';
-import ArticleHero from '@narative/gatsby-theme-novela/src/sections/article/Article.Hero';
-import ArticleControls from '@narative/gatsby-theme-novela/src/sections/article/Article.Controls';
-import ArticlesNext from '@narative/gatsby-theme-novela/src/sections/article/Article.Next';
-import ArticleSEO from '@narative/gatsby-theme-novela/src/sections/article/Article.SEO';
-import ArticleShare from '@narative/gatsby-theme-novela/src/sections/article/Article.Share';
+import ArticleAside from "@narative/gatsby-theme-novela/src/sections/article/Article.Aside";
+import ArticleHero from "@narative/gatsby-theme-novela/src/sections/article/Article.Hero";
+import ArticleControls from "@narative/gatsby-theme-novela/src/sections/article/Article.Controls";
+import ArticlesNext from "@narative/gatsby-theme-novela/src/sections/article/Article.Next";
+import ArticleSEO from "@narative/gatsby-theme-novela/src/sections/article/Article.SEO";
+import ArticleShare from "@narative/gatsby-theme-novela/src/sections/article/Article.Share";
 
-import 'katex/dist/katex.min.css';
-import '../../../styles/katex-extra.css';
+import "katex/dist/katex.min.css";
+import "../../../styles/katex-extra.css";
 
 const siteQuery = graphql`
   {
@@ -38,7 +38,7 @@ const siteQuery = graphql`
   }
 `;
 
-function Article({pageContext, location}) {
+function Article({ pageContext, location }) {
   const contentSectionRef = useRef<HTMLElement>(null);
 
   const [hasCalculated, setHasCalculated] = useState<boolean>(false);
@@ -48,12 +48,12 @@ function Article({pageContext, location}) {
   const name = results.allSite.edges[0].node.siteMetadata.name;
   const siteUrl = results.allSite.edges[0].node.siteMetadata.siteUrl;
 
-  const {article, authors, mailchimp, next} = pageContext;
+  const { article, authors, mailchimp, next } = pageContext;
 
   const disqusConfig = {
     url: siteUrl,
     identifier: article.id,
-    title: article.title,
+    title: article.title
   };
 
   useEffect(() => {
@@ -69,7 +69,7 @@ function Article({pageContext, location}) {
        */
       if (!hasCalculated) {
         const debouncedCalculation = debounce(calculateBodySize);
-        const $imgs = contentSection.querySelectorAll('img');
+        const $imgs = contentSection.querySelectorAll("img");
 
         $imgs.forEach($img => {
           // If the image hasn't finished loading then add a listener
@@ -85,9 +85,9 @@ function Article({pageContext, location}) {
     }, 20);
 
     calculateBodySize();
-    window.addEventListener('resize', calculateBodySize);
+    window.addEventListener("resize", calculateBodySize);
 
-    return () => window.removeEventListener('resize', calculateBodySize);
+    return () => window.removeEventListener("resize", calculateBodySize);
   }, []);
 
   return (
@@ -104,7 +104,7 @@ function Article({pageContext, location}) {
         <MDXRenderer content={article.body}>
           <ArticleShare />
         </MDXRenderer>
-        <Disqus config={disqusConfig} />
+        <StyledDisqus config={disqusConfig} />
       </ArticleBody>
       {mailchimp && article.subscription && <Subscription />}
       {next.length > 0 && (
@@ -130,6 +130,27 @@ const MobileControls = styled.div`
   `}
 `;
 
+const StyledDisqus = styled(Disqus)`
+  font-size: 18px;
+  color: ${p => p.theme.colors.articleText};
+  margin: 0 auto 35px;
+  width: 100%;
+  max-width: 680px;
+
+  ${mediaqueries.desktop`
+    max-width: 507px;
+  `}
+
+  ${mediaqueries.tablet`
+    max-width: 486px;
+    margin: 0 auto 25px;
+  `};
+
+  ${mediaqueries.phablet`
+    padding: 0 20px;
+  `};
+`;
+
 const ArticleBody = styled.article`
   position: relative;
   padding: 160px 0 35px;
@@ -138,7 +159,7 @@ const ArticleBody = styled.article`
   ${mediaqueries.desktop`
     padding-left: 53px;
   `}
-  
+
   ${mediaqueries.tablet`
     padding: 70px 0 80px;
   `}
