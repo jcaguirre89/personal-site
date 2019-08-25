@@ -23,6 +23,7 @@ const useTwitterApi = () => {
     data: JSON.stringify({
       terms: params.terms,
       lang: params.lang,
+      max_size: 500,
     }),
   };
 
@@ -38,7 +39,6 @@ const useTwitterApi = () => {
       } catch (error) {
         setIsError(true);
       }
-
       setIsLoading(false);
     };
 
@@ -60,20 +60,7 @@ const ChartContainer = styled.div`
 function GetTwitterData() {
   const [terms, setTerms] = useState('Chile');
   const lang = 'es';
-  const url =
-    'https://5zoc7b1wnf.execute-api.us-east-1.amazonaws.com/default/scrape_twitter_api';
-
-  const requestOptions = {
-    method: 'POST',
-    mode: 'cors',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      terms,
-      lang,
-    }),
-  };
+  const url = 'https://5zoc7b1wnf.execute-api.us-east-1.amazonaws.com/default/scrape_twitter_api'
 
   const [{data, isLoading, isError}, doFetch] = useTwitterApi();
 
@@ -107,7 +94,6 @@ function GetTwitterData() {
       <form
         onSubmit={event => {
           doFetch({url, terms, lang});
-
           event.preventDefault();
         }}>
         <input
