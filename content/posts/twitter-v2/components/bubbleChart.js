@@ -1,22 +1,23 @@
-import { ResponsiveBubbleCanvas } from '@nivo/circle-packing'
+import React from 'react';
+import {ResponsiveBubble} from '@nivo/circle-packing';
 
-
-const BubbleChart = ({ root }) => (
-  <ResponsiveBubbleCanvas
+const BubbleChart = ({root}) => (
+  <ResponsiveBubble
     root={root}
-    margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+    margin={{top: 20, right: 20, bottom: 20, left: 20}}
     identity="name"
     value="value"
-    colors={{ scheme: "yellow_orange_red" }}
-    colorBy="name"
+    colors={{scheme: 'blues'}}
+    colorBy="value"
     leavesOnly={true}
-    enableLabel={false}
-    label="name"
-    labelSkipRadius={10}
-    labelTextColor={{ from: "color", modifiers: [["darker", 0.8]] }}
-    borderColor={{ from: "color", modifiers: [["darker", 0.3]] }}
+    enableLabel={true}
+    labelSkipRadius={20}
+    labelTextColor={{from: 'color', modifiers: [['darker', 1.5]]}}
+    borderColor={{from: 'color', modifiers: [['darker', 0.3]]}}
     animate={true}
     motionStiffness={90}
     motionDamping={12}
   />
 );
+
+export default BubbleChart;

@@ -51,10 +51,7 @@ const useTwitterApi = () => {
 const ChartContainer = styled.div`
   margin: 0;
   width: 100%;
-
-  text {
-  font-size: large;
-  }
+  height: 500px;
 `
 
 function GetTwitterData() {
@@ -63,8 +60,6 @@ function GetTwitterData() {
   const url = 'https://5zoc7b1wnf.execute-api.us-east-1.amazonaws.com/default/scrape_twitter_api'
 
   const [{data, isLoading, isError}, doFetch] = useTwitterApi();
-
-  console.log(data)
 
   const wordCounts = data.reduce((obj, item) => {
     if (!obj[item]) {
@@ -75,7 +70,7 @@ function GetTwitterData() {
   }, {});
 
   const wordCountArray = Object.entries(wordCounts)
-    .filter(([k, v]) => v > 1)
+    .filter(([k, v]) => v > 2)
     .map(([k, v]) => {
       return {name: k, value: v};
     });
@@ -84,6 +79,8 @@ function GetTwitterData() {
     name: "root",
     children: wordCountArray
   }
+
+  console.log(bubbleChartRoot)
 
   return (
     <div style={{ margin: 0, width: `100%` }}>
