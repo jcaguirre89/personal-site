@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import styled from '@emotion/styled'
 import axios from 'axios';
 import ReactWordCloud from 'react-wordcloud';
+import BubbleChart from './bubbleChart';
 import { HashLoader } from 'react-spinners/HashLoader'
 
 const useTwitterApi = () => {
@@ -77,8 +78,13 @@ function GetTwitterData() {
   const wordCountArray = Object.entries(wordCounts)
     .filter(([k, v]) => v > 1)
     .map(([k, v]) => {
-      return {text: k, value: v};
+      return {name: k, value: v};
     });
+
+  const bubbleChartRoot = {
+    name: "root",
+    children: wordCountArray
+  }
 
   const wordCloudOptions = {
     colors: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b'],
@@ -90,12 +96,13 @@ function GetTwitterData() {
 
 
   return (
-    <div style={{margin: 0, width: `100%`}}>
+    <div style={{ margin: 0, width: `100%` }}>
       <form
         onSubmit={event => {
-          doFetch({url, terms, lang});
+          doFetch({ url, terms, lang });
           event.preventDefault();
-        }}>
+        }}
+      >
         <input
           type="text"
           value={terms}
@@ -106,7 +113,7 @@ function GetTwitterData() {
       {isLoading && <div>Loading...</div>}
       {!isLoading && wordCountArray && wordCountArray.length > 0 && (
         <ChartContainer>
-          <ReactWordCloud options={wordCloudOptions} words={wordCountArray} />
+          <BubbleChart root={bubbleChartRoot} />
         </ChartContainer>
       )}
     </div>
