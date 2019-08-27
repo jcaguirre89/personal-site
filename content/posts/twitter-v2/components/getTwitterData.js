@@ -2,7 +2,8 @@ import React, {useState, useEffect} from 'react';
 import styled from '@emotion/styled'
 import axios from 'axios';
 import BubbleChart from './bubbleChart';
-import { HashLoader } from 'react-spinners/HashLoader'
+import HashLoader from 'react-spinners/HashLoader'
+import { useColorMode } from 'theme-ui'
 
 const useTwitterApi = () => {
   const [data, setData] = useState([]);
@@ -48,18 +49,15 @@ const useTwitterApi = () => {
   return [{data, isLoading, isError}, setParams];
 };
 
-const ChartContainer = styled.div`
-  margin: 0;
-  width: 100%;
-  height: 500px;
-`
-
 function GetTwitterData() {
   const [terms, setTerms] = useState('Chile');
   const lang = 'es';
   const url = 'https://5zoc7b1wnf.execute-api.us-east-1.amazonaws.com/default/scrape_twitter_api'
 
   const [{data, isLoading, isError}, doFetch] = useTwitterApi();
+
+  const [ colorMode ] = useColorMode()
+  const fill = colorMode === 'dark' ? '#fff' : '#000';
 
   const wordCounts = data.reduce((obj, item) => {
     if (!obj[item]) {
@@ -80,8 +78,6 @@ function GetTwitterData() {
     children: wordCountArray
   }
 
-  console.log(bubbleChartRoot)
-
   return (
     <div style={{ margin: 0, width: `100%` }}>
       <form
@@ -97,11 +93,11 @@ function GetTwitterData() {
         />
         <button type="submit">Search</button>
       </form>
-      {isLoading && <div>Loading...</div>}
+      <HashLoader size='80' color={fill} loading={isLoading} />
       {!isLoading && wordCountArray && wordCountArray.length > 0 && (
-        <ChartContainer>
+        <div style={{width: `100%`, height: `500px`, margin: `0`}}>
           <BubbleChart root={bubbleChartRoot} />
-        </ChartContainer>
+        </div>
       )}
     </div>
   );
