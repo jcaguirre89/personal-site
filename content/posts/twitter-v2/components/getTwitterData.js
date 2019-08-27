@@ -1,7 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import styled from '@emotion/styled'
 import axios from 'axios';
-import ReactWordCloud from 'react-wordcloud';
 import BubbleChart from './bubbleChart';
 import { HashLoader } from 'react-spinners/HashLoader'
 
@@ -85,15 +84,6 @@ function GetTwitterData() {
     name: "root",
     children: wordCountArray
   }
-
-  const wordCloudOptions = {
-    colors: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b'],
-    enableTooltip: true,
-    deterministic: true,
-    fontFamily: 'impact',
-    fontSizes: [5, 60],
-  };
-
 
   return (
     <div style={{ margin: 0, width: `100%` }}>
