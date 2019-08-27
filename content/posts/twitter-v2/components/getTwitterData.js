@@ -1,6 +1,8 @@
 import React, {useState, useEffect} from 'react';
+import styled from '@emotion/styled'
 import axios from 'axios';
 import ReactWordCloud from 'react-wordcloud';
+import { HashLoader } from 'react-spinners/HashLoader'
 
 const useTwitterApi = () => {
   const [data, setData] = useState([]);
@@ -46,6 +48,15 @@ const useTwitterApi = () => {
   return [{data, isLoading, isError}, setParams];
 };
 
+const ChartContainer = styled.div`
+  margin: 0;
+  width: 100%;
+
+  text {
+  font-size: large;
+  }
+`
+
 function GetTwitterData() {
   const [terms, setTerms] = useState('Chile');
   const lang = 'es';
@@ -66,8 +77,9 @@ function GetTwitterData() {
 
   const [{data, isLoading, isError}, doFetch] = useTwitterApi();
 
-  const usernames = data.map(tweet => tweet.user_handle);
-  const usernameCount = usernames.reduce((obj, item) => {
+  console.log(data)
+
+  const wordCounts = data.reduce((obj, item) => {
     if (!obj[item]) {
       obj[item] = 0;
     }
@@ -75,7 +87,7 @@ function GetTwitterData() {
     return obj;
   }, {});
 
-  const usernameArray = Object.entries(usernameCount)
+  const wordCountArray = Object.entries(wordCounts)
     .filter(([k, v]) => v > 1)
     .map(([k, v]) => {
       return {text: k, value: v};
@@ -89,10 +101,9 @@ function GetTwitterData() {
     fontSizes: [5, 60],
   };
 
-  console.log(data)
 
   return (
-    <div>
+    <div style={{margin: 0, width: `100%`}}>
       <form
         onSubmit={event => {
           doFetch({url, terms, lang});
@@ -107,10 +118,10 @@ function GetTwitterData() {
         <button type="submit">Search</button>
       </form>
       {isLoading && <div>Loading...</div>}
-      {!isLoading && usernameArray && usernameArray.length > 0 && (
-        <div style={{width: 600, height: 400}}>
-          <ReactWordCloud options={wordCloudOptions} words={usernameArray} />
-        </div>
+      {!isLoading && wordCountArray && wordCountArray.length > 0 && (
+        <ChartContainer>
+          <ReactWordCloud options={wordCloudOptions} words={wordCountArray} />
+        </ChartContainer>
       )}
     </div>
   );
