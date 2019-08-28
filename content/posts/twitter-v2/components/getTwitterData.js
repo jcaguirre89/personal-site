@@ -4,8 +4,8 @@ import axios from 'axios';
 import BubbleChart from './bubbleChart';
 import HashLoader from 'react-spinners/HashLoader';
 import {useColorMode} from 'theme-ui';
-import SearchInput from '../../../../src/components/searchInput';
-import Toggle from '../../../../src/components/toggle';
+import { Form, Field } from "@leveluptuts/fresh";
+import mediaqueries from "@styles/media";
 
 const useTwitterApi = () => {
   const [data, setData] = useState([]);
@@ -51,10 +51,42 @@ const useTwitterApi = () => {
   return [{data, isLoading, isError}, setParams];
 };
 
+const StyledForm = styled(Form)`
+  width: 70%;
+  height: 130px;
+  margin: 0 auto 25px;
+  padding: 0 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  color: ${props => props.theme.colors.articleText};
+  border-color: ${props => props.theme.colors.articleText};
+
+  ${mediaqueries.phablet`
+    flex-direction: column;
+    height: 200px;
+    align-items: flex-start;
+  `}
+
+  .field-wrapper {
+    margin: 0;
+  }
+
+  button {
+    height: 50px;
+    width: 100px;
+    margin: 0.5em 0px;
+    padding: 0.75em;
+    border-radius: 3px;
+    border: 1px solid ${props => props.theme.colors.articleText};
+
+    :hover {
+      background-color: ${props => props.theme.colors.accent};
+    }
+  }
+`;
+
 function GetTwitterData() {
-  const [terms, setTerms] = useState('Chile');
-  const [isSpanish, toggleSpanish] = useState(true);
-  const lang = isSpanish ? 'es' : 'en';
   const url =
     'https://5zoc7b1wnf.execute-api.us-east-1.amazonaws.com/default/scrape_twitter_api';
 
@@ -84,15 +116,16 @@ function GetTwitterData() {
 
   return (
     <div style={{display: 'flex', flexDirection: 'column'}}>
-      <form
-        style={{width: `100%`, height: `100px`, display: `flex`, justifyContent: `space-between`}}
-        onSubmit={event => {
-          doFetch({url, terms, lang});
-          event.preventDefault();
-        }}>
-        <SearchInput value={terms} handleChange={terms => setTerms(terms)} />
-        <Toggle value={isSpanish} handleChange={e => toggleSpanish(!isSpanish)} />
-      </form>
+      <StyledForm
+        onSubmit={({data}) => {
+          const lang = data.language || 'es';
+          doFetch({url, terms: data.terms, lang})}
+        }
+        cancelButton={false}
+        >
+          <Field placeholder='Maradona' defaultValue='Maradona'>Terms</Field>
+          <Field type='select' defaultValue='es' options={['es', 'en']}>Language</Field>
+      </StyledForm>
       <div
         style={{
           width: `100%`,
