@@ -8,7 +8,7 @@ module.exports = {
     title: `Cristobal Aguirre`,
     name: `Cristobal Aguirre`,
     siteUrl: siteUrl,
-    description: `Personal site by Cristobal Aguirre.`,
+    description: `My small corner of the internet, where I write about stuff I'm learning and other hobbies I'm obsessing with.`,
     hero: {
       heading: `The best time to plant a tree was 20 years ago—the second best time is now`,
       maxWidth: 652
