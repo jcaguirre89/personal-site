@@ -15,7 +15,7 @@ query getWords($terms: String!, $language: String) {
 
 function GetTwitterData() {
   const { loading, error, data: {words}, refetch } = useQuery(GET_WORDS_QUERY, {
-    variables: { terms: 'Maradona', language: 'es' }
+    variables: { terms: '#BuiltWithGatsby', language: 'en' }
   });
   const [colorMode] = useColorMode();
   const fill = colorMode === 'dark' ? '#fff' : '#000';
@@ -41,16 +41,20 @@ function GetTwitterData() {
     };
 
   return (
-    <div style={{display: 'flex', flexDirection: 'column'}}>
+    <div style={{ display: "flex", flexDirection: "column" }}>
       <StyledForm
-        onSubmit={({data: formData}) => {
-          const lang = formData.language || 'es';
-          refetch({terms: formData.terms, language: lang})
+        onSubmit={({ data: formData }) => {
+          const lang = formData.language || "es";
+          refetch({ terms: formData.terms, language: lang });
         }}
         cancelButton={false}
-        >
-          <Field placeholder='Maradona' defaultValue='Maradona'>Terms</Field>
-          <Field type='select' defaultValue='es' options={['es', 'en']}>Language</Field>
+      >
+        <Field placeholder="#BuiltWithGatsby" defaultValue="#BuiltWithGatsby">
+          Terms
+        </Field>
+        <Field type="select" defaultValue="en" options={["es", "en"]}>
+          Language
+        </Field>
       </StyledForm>
       <div
         style={{
@@ -59,8 +63,9 @@ function GetTwitterData() {
           margin: `0`,
           display: `flex`,
           alignItems: `center`,
-          justifyContent: `center`,
-        }}>
+          justifyContent: `center`
+        }}
+      >
         <HashLoader size="80" color={fill} loading={loading} />
         {!loading && bubbleChartRoot.children.length && (
           <BubbleChart colorMode={colorMode} root={bubbleChartRoot} />
