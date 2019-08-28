@@ -1,4 +1,5 @@
 require('dotenv').config();
+const proxy = require("http-proxy-middleware");
 
 const siteUrl = `https://www.cristobal-aguirre.com`;
 
@@ -161,5 +162,16 @@ module.exports = {
         shortname: `cristobal-aguirre`
       }
     }
-  ]
+  ],
+  developMiddleware: app => {
+    app.use(
+      "/.netlify/functions/",
+      proxy({
+        target: "http://localhost:9000",
+        pathRewrite: {
+          "/.netlify/functions/": ""
+        }
+      })
+    );
+  }
 };
