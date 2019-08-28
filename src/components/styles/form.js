@@ -13,6 +13,11 @@ const StyledForm = styled(Form)`
   color: ${props => props.theme.colors.articleText};
   border-color: ${props => props.theme.colors.articleText};
 
+  input :focus, select :focus {
+    color: ${props => props.theme.colors.accent};
+    border-color: ${props => props.theme.colors.accent};
+  }
+
   ${mediaqueries.tablet`
     flex-direction: column;
     height: 200px;
@@ -33,6 +38,11 @@ const StyledForm = styled(Form)`
 
     :hover {
       background-color: ${props => props.theme.colors.accent};
+    }
+
+    :focus {
+      color: ${props => props.theme.colors.articleText};
+      border-color: ${props => props.theme.colors.accent};
     }
   }
 `;
