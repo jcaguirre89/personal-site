@@ -3,10 +3,7 @@ import mediaqueries from "@styles/media";
 import styled from '@emotion/styled'
 
 const StyledForm = styled(Form)`
-  width: 50%;
-  height: 130px;
-  margin: 0 auto 25px;
-  padding: 0 25px;
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -20,7 +17,6 @@ const StyledForm = styled(Form)`
 
   ${mediaqueries.tablet`
     flex-direction: column;
-    height: 200px;
     align-items: flex-start;
   `}
 

@@ -7,6 +7,7 @@ import {useColorMode} from 'theme-ui';
 import styled from '@emotion/styled'
 import { Field } from "@leveluptuts/fresh";
 import StyledForm from '../../../../src/components/styles/form'
+import mediaqueries from "@styles/media";
 
 const GET_WORDS_QUERY = gql`
 query getWords($terms: String!, $language: String) {
@@ -16,6 +17,24 @@ query getWords($terms: String!, $language: String) {
 
 const ErrorMessage = styled.h3`
   color: hsla(3, 100%, 69%, 1);
+`;
+
+const OuterContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto 35px;
+  width: 100%;
+  max-width: 680px;
+  ${mediaqueries.desktop`
+    max-width: 507px;
+  `}
+  ${mediaqueries.tablet`
+    max-width: 486px;
+    margin: 0 auto 25px;
+  `};
+  ${mediaqueries.phablet`
+    padding: 0 20px;
+  `};
 `;
 
 function GetTwitterData() {
@@ -46,7 +65,7 @@ function GetTwitterData() {
     };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
+    <OuterContainer>
       <StyledForm
         onSubmit={({ data: formData }) => {
           const lang = formData.language || "es";
@@ -81,7 +100,7 @@ function GetTwitterData() {
           <BubbleChart colorMode={colorMode} root={bubbleChartRoot} />
         )}
       </div>
-    </div>
+    </OuterContainer>
   );
 }
 
