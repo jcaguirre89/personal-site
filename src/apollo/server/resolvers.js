@@ -1,7 +1,8 @@
 const resolvers = {
   Query: {
     words: async (parent, args, { dataSources }) => {
-      const words = await dataSources.twitterWordsAPI.getWords(...args)
+      const {terms, language, maxTweets} = args
+      const words = await dataSources.twitterWordsAPI.getWords(terms, language, maxTweets)
       return words
     }
   }

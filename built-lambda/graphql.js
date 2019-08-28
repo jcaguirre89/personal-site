@@ -68868,7 +68868,12 @@ const resolvers = {
     words: async (parent, args, {
       dataSources
     }) => {
-      const words = await dataSources.twitterWordsAPI.getWords(...args);
+      const {
+        terms,
+        language,
+        maxTweets
+      } = args;
+      const words = await dataSources.twitterWordsAPI.getWords(terms, language, maxTweets);
       return words;
     }
   }
@@ -68896,13 +68901,14 @@ class TwitterWordsAPI extends RESTDataSource {
     this.httpCache = new HTTPCache();
   }
 
-  async getWords(terms, language, maxWords) {
-    const words = await this.get('/', {
+  async getWords(terms, language, maxTweets) {
+    console.log(maxTweets);
+    const words = await this.post("/", {
       terms,
-      lang: language,
-      max_words: maxWords
+      lang: language || 'es',
+      max_tweets: maxTweets || 500
     });
-    return data;
+    return words;
   }
 
 }
@@ -68933,8 +68939,8 @@ const resolvers = __webpack_require__(/*! ../apollo/server/resolvers */ "../apol
 
 const typeDefs = gql`
   type Query {
-    words(terms: [String], language: String,
-    maxWords: Int): [String]
+    words(terms: String!, language: String,
+    maxTweets: Int): [String]
   }`;
 const server = new ApolloServer({
   typeDefs,

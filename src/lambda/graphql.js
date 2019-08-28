@@ -3,8 +3,8 @@ const {TwitterWordsAPI} = require("../apollo/server/twitter-datasource")
 const resolvers = require("../apollo/server/resolvers")
 const typeDefs = gql`
   type Query {
-    words(terms: [String], language: String,
-    maxWords: Int): [String]
+    words(terms: String!, language: String,
+    maxTweets: Int): [String]
   }`
 
 const server = new ApolloServer({
