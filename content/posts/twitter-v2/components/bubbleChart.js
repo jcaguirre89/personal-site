@@ -3,7 +3,7 @@ import {ResponsiveBubble} from '@nivo/circle-packing';
 
 const BubbleChart = ({ root, colorMode }) => {
 
-  const bubbleColor = colorMode === "dark" ? "hsla(212, 80%, 60%, 1)" : "hsla(212, 80%, 40%, 1)";
+  const bubbleColor = colorMode === "dark" ? "hsla(212, 80%, 70%, 1)" : "hsla(212, 80%, 60%, 1)";
   const labelColorModifiers =
     colorMode === "dark" ? [["darker", 2]] : [["brighter", 2]];
 

@@ -3,7 +3,7 @@ import mediaqueries from "@styles/media";
 import styled from '@emotion/styled'
 
 const StyledForm = styled(Form)`
-  width: 70%;
+  width: 50%;
   height: 130px;
   margin: 0 auto 25px;
   padding: 0 25px;
@@ -13,7 +13,7 @@ const StyledForm = styled(Form)`
   color: ${props => props.theme.colors.articleText};
   border-color: ${props => props.theme.colors.articleText};
 
-  ${mediaqueries.phablet`
+  ${mediaqueries.tablet`
     flex-direction: column;
     height: 200px;
     align-items: flex-start;
