@@ -18,6 +18,7 @@ const BubbleChart = ({ root, colorMode }) => {
     labelSkipRadius={20}
     labelTextColor={{ from: "color", modifiers: labelColorModifiers }}
     borderColor={{ from: "color", modifiers: [["darker", 0.3]] }}
+    isZoomable={false}
     animate={true}
     motionStiffness={90}
     motionDamping={12}
