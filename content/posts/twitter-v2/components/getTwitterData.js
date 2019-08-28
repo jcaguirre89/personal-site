@@ -4,6 +4,7 @@ import gql from "graphql-tag";
 import BubbleChart from './bubbleChart';
 import HashLoader from 'react-spinners/HashLoader';
 import {useColorMode} from 'theme-ui';
+import styled from '@emotion/styled'
 import { Field } from "@leveluptuts/fresh";
 import StyledForm from '../../../../src/components/styles/form'
 
@@ -11,6 +12,10 @@ const GET_WORDS_QUERY = gql`
 query getWords($terms: String!, $language: String) {
   words(terms: $terms, language: $language)
 }
+`;
+
+const ErrorMessage = styled.h3`
+  color: hsla(3, 100%, 69%, 1);
 `;
 
 function GetTwitterData() {
@@ -67,7 +72,12 @@ function GetTwitterData() {
         }}
       >
         <HashLoader size="80" color={fill} loading={loading} />
-        {!loading && bubbleChartRoot.children.length && (
+        {!loading && bubbleChartRoot.children.length === 0 && (
+          <ErrorMessage>
+            Not enough words found, or some other error. Try again with a different term, another language, or in a few moments---I may have reached the temporary limit in the Twitter API, and it resets after 15 minutes.
+          </ErrorMessage>
+        )}
+        {!loading && bubbleChartRoot.children.length > 0 && (
           <BubbleChart colorMode={colorMode} root={bubbleChartRoot} />
         )}
       </div>
