@@ -1,9 +1,11 @@
 import React, {useState, useEffect} from 'react';
-import styled from '@emotion/styled'
+import styled from '@emotion/styled';
 import axios from 'axios';
 import BubbleChart from './bubbleChart';
-import HashLoader from 'react-spinners/HashLoader'
-import { useColorMode } from 'theme-ui'
+import HashLoader from 'react-spinners/HashLoader';
+import {useColorMode} from 'theme-ui';
+import SearchInput from '../../../../src/components/searchInput';
+import Toggle from '../../../../src/components/toggle';
 
 const useTwitterApi = () => {
   const [data, setData] = useState([]);
@@ -51,12 +53,14 @@ const useTwitterApi = () => {
 
 function GetTwitterData() {
   const [terms, setTerms] = useState('Chile');
-  const lang = 'es';
-  const url = 'https://5zoc7b1wnf.execute-api.us-east-1.amazonaws.com/default/scrape_twitter_api'
+  const [isSpanish, toggleSpanish] = useState(true);
+  const lang = isSpanish ? 'es' : 'en';
+  const url =
+    'https://5zoc7b1wnf.execute-api.us-east-1.amazonaws.com/default/scrape_twitter_api';
 
   const [{data, isLoading, isError}, doFetch] = useTwitterApi();
 
-  const [ colorMode ] = useColorMode()
+  const [colorMode] = useColorMode();
   const fill = colorMode === 'dark' ? '#fff' : '#000';
 
   const wordCounts = data.reduce((obj, item) => {
@@ -74,31 +78,35 @@ function GetTwitterData() {
     });
 
   const bubbleChartRoot = {
-    name: "root",
-    children: wordCountArray
-  }
+    name: 'root',
+    children: wordCountArray,
+  };
 
   return (
-    <div style={{ margin: 0, width: `100%` }}>
+    <div style={{display: 'flex', flexDirection: 'column'}}>
       <form
+        style={{width: `100%`, height: `100px`, display: `flex`, justifyContent: `space-between`}}
         onSubmit={event => {
-          doFetch({ url, terms, lang });
+          doFetch({url, terms, lang});
           event.preventDefault();
-        }}
-      >
-        <input
-          type="text"
-          value={terms}
-          onChange={event => setTerms(event.target.value)}
-        />
-        <button type="submit">Search</button>
+        }}>
+        <SearchInput value={terms} handleChange={terms => setTerms(terms)} />
+        <Toggle value={isSpanish} handleChange={e => toggleSpanish(!isSpanish)} />
       </form>
-      <HashLoader size='80' color={fill} loading={isLoading} />
-      {!isLoading && wordCountArray && wordCountArray.length > 0 && (
-        <div style={{width: `100%`, height: `500px`, margin: `0`}}>
+      <div
+        style={{
+          width: `100%`,
+          height: `500px`,
+          margin: `0`,
+          display: `flex`,
+          alignItems: `center`,
+          justifyContent: `center`,
+        }}>
+        <HashLoader size="80" color={fill} loading={isLoading} />
+        {!isLoading && wordCountArray && wordCountArray.length > 0 && (
           <BubbleChart root={bubbleChartRoot} />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

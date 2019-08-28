@@ -12,7 +12,7 @@ const BubbleChart = ({root}) => (
     leavesOnly={true}
     enableLabel={true}
     labelSkipRadius={20}
-    labelTextColor={{from: 'color', modifiers: [['darker', 1.5]]}}
+    labelTextColor={{from: 'color', modifiers: [['brighter', 2]]}}
     borderColor={{from: 'color', modifiers: [['darker', 0.3]]}}
     animate={true}
     motionStiffness={90}
