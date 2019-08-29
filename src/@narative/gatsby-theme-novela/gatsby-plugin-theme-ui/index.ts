@@ -37,7 +37,7 @@ const styles = {
 };
 
 export default merge({
-  initialColorMode: 'dark',
+  initialColorMode: 'light',
   colorModeTransition,
   colors,
   fonts,

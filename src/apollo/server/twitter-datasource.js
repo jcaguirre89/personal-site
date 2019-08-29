@@ -11,7 +11,7 @@ class TwitterWordsAPI extends RESTDataSource {
     console.log(maxTweets)
     const words = await this.post("/", {
       terms,
-      lang: language || 'es',
+      lang: language || 'en',
       max_tweets: maxTweets || 500
     });
     return words

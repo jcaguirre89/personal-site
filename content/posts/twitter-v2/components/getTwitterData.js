@@ -68,7 +68,7 @@ function GetTwitterData() {
     <OuterContainer>
       <StyledForm
         onSubmit={({ data: formData }) => {
-          const lang = formData.language || "es";
+          const lang = formData.language || "en";
           refetch({ terms: formData.terms, language: lang });
         }}
         cancelButton={false}
@@ -76,7 +76,7 @@ function GetTwitterData() {
         <Field placeholder="#BuiltWithGatsby" defaultValue="#BuiltWithGatsby">
           Terms
         </Field>
-        <Field type="select" defaultValue="en" options={["es", "en"]}>
+        <Field type="select" defaultValue="en" options={["en", "es"]}>
           Language
         </Field>
       </StyledForm>
