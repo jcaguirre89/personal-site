@@ -21,7 +21,7 @@ import ArticleSEO from "@narative/gatsby-theme-novela/src/sections/article/Artic
 import ArticleShare from "@narative/gatsby-theme-novela/src/sections/article/Article.Share";
 
 import "katex/dist/katex.min.css";
-import "../../../styles/katex-extra.css";
+import "../../../styles/site-extra.css";
 
 const siteQuery = graphql`
   {
