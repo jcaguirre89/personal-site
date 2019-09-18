@@ -1,0 +1,25 @@
+.katex {
+  color: #099;
+  font-size: 2rem !important;
+}
+
+@font-face {
+  font-family: "HK Grotesk";
+  src: url("../fonts/hkgrotesk-italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "HK Grotesk";
+  src: url("../fonts/hkgrotesk-bold.woff2") format("woff2");
+  font-weight: 400;
+  font-style: bold;
+}
+
+@font-face {
+  font-family: "HK Grotesk";
+  src: url("../fonts/HKGrotesk-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+}
