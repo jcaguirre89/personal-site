@@ -38,14 +38,14 @@ const OuterContainer = styled.div`
 `;
 
 function GetTwitterData() {
-  const { loading, error, data: {words}, refetch } = useQuery(GET_WORDS_QUERY, {
+  const { loading, error, data, refetch } = useQuery(GET_WORDS_QUERY, {
     variables: { terms: '#BuiltWithGatsby', language: 'en' }
   });
   const [colorMode] = useColorMode();
   const fill = colorMode === 'dark' ? '#fff' : '#000';
 
 
-    const wordCounts = words && words.reduce((obj, item) => {
+    const wordCounts = data && data.reduce((obj, item) => {
       if (!obj[item]) {
         obj[item] = 0;
     }
@@ -53,7 +53,7 @@ function GetTwitterData() {
     return obj;
     }, {});
 
-    const wordCountArray = words && Object.entries(wordCounts)
+    const wordCountArray = data && Object.entries(wordCounts)
     .filter(([k, v]) => v > 2)
     .map(([k, v]) => {
       return {name: k, value: v};
