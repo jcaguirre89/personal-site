@@ -4,7 +4,7 @@ const offBlack = "#242629";
 const offWhite = "#eeeeef";
 
 const fonts = {
-  serif: "'Merriweather', Georgia, Serif",
+  serif: "'Source Serif Pro:700', 'Merriweather:900', Georgia, Serif",
   sansSerif:
     "'HK Grotesk', 'SF Pro Display', '-apple-system', 'BlinkMacSystemFont', 'San Francisco', 'Helvetica Neue', 'Helvetica', 'Ubuntu', 'Roboto', 'Noto', 'Segoe UI', 'Arial', sans-serif",
   monospace: `"Operator Mono", Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace`
