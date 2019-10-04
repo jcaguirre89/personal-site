@@ -39,7 +39,7 @@ const OuterContainer = styled.div`
 
 function GetTwitterData() {
   const {loading, error, data, refetch} = useQuery(GET_WORDS_QUERY, {
-    variables: {terms: '#BuiltWithGatsby', language: 'en'},
+    variables: {terms: 'Chile', language: 'es'},
   });
   const [colorMode] = useColorMode();
   const fill = colorMode === 'dark' ? '#fff' : '#000';
@@ -77,7 +77,8 @@ function GetTwitterData() {
     if (bubbleChartRoot.children.length === 0)
       return (
         <ErrorMessage>
-          Not enough words found, or some other error. Try again with a
+          An error ocurred, probably because your term didn't return enough tweets. 
+          Try again with a
           different term, another language, or in a few moments---I may have
           reached the temporary limit in the Twitter API, and it resets after 15
           minutes.
@@ -95,10 +96,10 @@ function GetTwitterData() {
           refetch({terms: formData.terms, language: lang});
         }}
         cancelButton={false}>
-        <Field placeholder="#BuiltWithGatsby" defaultValue="#BuiltWithGatsby">
+        <Field placeholder="Chile" defaultValue="Chile">
           Terms
         </Field>
-        <Field type="select" defaultValue="en" options={['en', 'es']}>
+        <Field type="select" defaultValue="es" options={['es', 'en']}>
           Language
         </Field>
       </StyledForm>
