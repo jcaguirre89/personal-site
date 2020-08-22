@@ -28,7 +28,7 @@ estimador corrigiendo los errores del estimador anterior. Esta imágen que tomé
 
 ![Ejemplo de gradient descent con golfista](golf-MSE.PNG)
 
-En términos matemáticos, en cada paso $m$ se va a estimar un estimador $f_m(x)$ sobre los residuos entre la variable objetivo y la estimación del paso anterior $f_{m-1}(x)$. Al final del proceso, el estimador final $F_m(x)$ consistirá en un estimador base $f_0$---que puede ser una serie de 0’s, el promedio, la mediana, etc.---y una sumatoria de $m$ estimadores débiles $f_m(x)$, ajustados por un parámetro de regularización $\eta$ que afecta la contribución de cada estimador al estimador final (conocido en inglés como _shrinkage_ o _learning rate_) para controlar el _overfitting_.
+En términos matemáticos, en cada paso $m$ se va a construir un estimador $f_m(x)$ sobre los residuos (técnicamente el gradiente, no los residuos, pero como veremos más adelante en el caso del error cuadrático medio como función de pérdida, estos coinciden) entre la variable objetivo y la estimación del paso anterior $f_{m-1}(x)$. Al final del proceso, el estimador final $F_m(x)$ consistirá en un estimador base $f_0$---que puede ser una serie de 0’s, el promedio, la mediana, etc.---y una sumatoria de $m$ estimadores débiles $f_m(x)$, ajustados por un parámetro de regularización $\eta$ que afecta la contribución de cada estimador al estimador final (conocido en inglés como _shrinkage_ o _learning rate_) para controlar el _overfitting_.
 
 $$
 F_M(x) = f_0 + \eta \sum_m^M f_m(x)
@@ -63,7 +63,7 @@ Definiremos el gradiente de cada función de pérdida de manera simple, con las 
 ```python
 def mse_gradient(y, f):
     """
-    Error cuadrático, cuyo gradiente
+    Error cuadrático medio, cuyo gradiente
     es equivalente a los residuos
     """
     return y - f
@@ -88,21 +88,12 @@ def logistic_gradient(y, f):
 Con las distintas funciones para los _pseudo-residuos_ listas, podemos pasar a implementar el algoritmo. Para el cuerpo principal, tendremos:
 
 ```python
-# Voy a ignorar los imports en los segmentos de codigo mas abajo
-from sklearn.base import clone, BaseEstimator
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.dummy import DummyRegressor
-
-import numpy as np
-from scipy.special import expit
-
-# BaseEstimator provee algunos metodos de utilidad no usados aca
-class GBoost(BaseEstimator):
+class GBoost:
     def __init__(
         self,
         n_estimators=100,  # Tambien referido como M arriba
         learning_rate=0.1,
-        loss='ls',
+        loss='ls', # funcion de perdida default: error cuadratico medio
         tol=0.5  # Solo relevante para clasificacion
         ):
 
@@ -149,6 +140,7 @@ def fit(self, X, y):
         # Paso 4: Guardar este estimador para
         # incluirlo en la prediccion del paso 1
         self._estimators.append(f)
+        # repetir pasos 2-4 M veces
     return self
 
 def predict(self, X):
